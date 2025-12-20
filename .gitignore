@@ -1,0 +1,39 @@
+# ---------------------------------
+# ARQUIVOS DE CONFIGURAÇÃO E SENHAS
+# (IMPORTANTE: Nunca commite estes arquivos)
+# ---------------------------------
+.env
+.env.local
+config.js
+config.local.js
+
+# ---------------------------------
+# DEPENDÊNCIAS E LOGS (Node.js)
+# ---------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json # (Opcional: Geralmente se commita, mas se não usar Node, pode ignorar)
+
+# ---------------------------------
+# ARQUIVOS DE BUILD (Se usar Vite/Webpack)
+# ---------------------------------
+dist/
+build/
+
+# ---------------------------------
+# SISTEMA OPERACIONAL
+# ---------------------------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ---------------------------------
+# IDEs E EDITORES DE CÓDIGO
+# ---------------------------------
+.vscode/
+.idea/
+*.sublime-workspace
+*.swp
