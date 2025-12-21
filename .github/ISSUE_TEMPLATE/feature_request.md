@@ -1,9 +1,3 @@
-
----
-
-## ✨ Template – Nova Funcionalidade
-
-```md
 ---
 name: ✨ Feature Request
 about: Sugestão de nova funcionalidade
