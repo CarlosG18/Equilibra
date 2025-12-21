@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./assets/logo.svg" alt="Equilibra_logo" width="800">
+  <img src="./assets/logo.svg" alt="Equilibra_logo" width="600">
   
   <br>
 
