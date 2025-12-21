@@ -10,7 +10,7 @@ if (memberForm) {
         // 1. COLETAR DADOS
         const name = document.getElementById('memberName').value;
         const role = document.getElementById('memberRole').value;
-        const email = document.getElementById('memberEmail').value;
+        //const email = document.getElementById('memberEmail').value;
 
         // 2. FEEDBACK VISUAL
         const submitBtn = this.querySelector('button[type="submit"]');
@@ -24,7 +24,7 @@ if (memberForm) {
             // --- DECISÃO: CRIAR OU ATUALIZAR? ---
             if (editingMemberId) {
                 // >>> MODO EDIÇÃO <<<
-                res = await ProjectService.atualizarMembro(editingMemberId, name, role, email);
+                res = await ProjectService.atualizarMembro(editingMemberId, name, role);
 
                 if (res.success) {
                     // Atualiza o membro no array local
@@ -38,7 +38,7 @@ if (memberForm) {
 
             } else {
                 // >>> MODO CRIAÇÃO <<<
-                res = await ProjectService.adicionarMembro(name, role, email);
+                res = await ProjectService.adicionarMembro(name, role);
 
                 if (res.success) {
                     members.push(res.data);
@@ -103,7 +103,6 @@ function renderMembers() {
                 <strong>${member.name}</strong>
             </td>
             <td>${member.role}</td>
-            <td>${member.email}</td>
             <td>
                 <span class="overload-indicator ${overloadClass}">${member.overload} pontos</span>
             </td>

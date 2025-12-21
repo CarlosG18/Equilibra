@@ -49,7 +49,7 @@ async function initApp() {
         if(spinner) spinner.remove();
 
         // Renderiza tudo
-        updateFullInterface();
+        //updateFullInterface();
     } else {
         alert("Erro ao carregar dados: " + resultado.error);
     }

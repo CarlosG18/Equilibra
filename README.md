@@ -1,110 +1,72 @@
-# Equilibra
-Sistema para gerenciamento de sobrecarga de membros de projetos usando a metodologia SCRUM.
+<div align="center">
+  <img src="./assets/logo.svg" alt="Equilibra_logo" width="800">
+  
+  <br>
 
-senha do banco: Equ1l1br4@BD
+  <p align="center">
+    <b>Gerenciamento visual de capacidade e alocação para times ágeis.</b>
+  </p>
 
-## 🚀 Funcionalidades
+  <p align="center">
+    <a href="https://seu-projeto.vercel.app">
+      <img src="https://img.shields.io/badge/Acessar_Dashboard-000?style=for-the-badge&logo=vercel&logoColor=white" alt="Deploy Vercel">
+    </a>
+  </p>
 
-- ✅ **Autenticação de usuários** (login/cadastro)
-- ✅ **Gestão de membros** da equipe
-- ✅ **Gestão de projetos** com pontos de sobrecarga
-- ✅ **Definição de Scrum Masters**
-- ✅ **Atividades extras** dos membros
-- ✅ **Dashboard** com visão geral
-- ✅ **Cálculo automático** de sobrecarga
-- ✅ **Persistência em banco de dados** (Supabase)
-- ✅ **Acesso de qualquer dispositivo**
+  <p align="center">
+    <img src="https://img.shields.io/badge/Versão-1.0-blue?style=flat-square" alt="Versão 1.0">
+    <img src="https://img.shields.io/badge/Status-Em_Produção-2ea44f?style=flat-square" alt="Status">
+  </p>
+</div>
 
-## 🛠️ Tecnologias
+## 🎯 Sobre o Projeto
 
-- HTML5, CSS3, JavaScript
-- Supabase (Backend como Serviço)
-- GitHub Pages / Vercel (Deploy)
+O **Equilibra** é uma solução desenvolvida para resolver o desafio de equilibrar a carga de trabalho em equipes de tecnologia. Através de uma interface limpa e indicadores visuais, líderes e gestores conseguem identificar gargalos, evitar burnout e garantir que os projetos tenham os recursos necessários.
 
-## 📦 Instalação
+---
 
-### 1. Configurar Supabase
+## ✨ Funcionalidades Principais
 
-1. Acesse [supabase.com](https://supabase.com) e crie uma conta gratuita
-2. Crie um novo projeto
-3. Vá em **SQL Editor** e execute o SQL abaixo:
+### 1. 📊 Dashboard de Capacidade Inteligente
+O coração do sistema. Oferece uma visão imediata da saúde do time:
+* **Cálculo Automático de Carga:** O sistema soma pontos de projetos e atividades extras automaticamente.
+* **Indicadores Visuais de Risco:**
+    * 🟢 **Verde:** Carga saudável ou disponibilidade.
+    * 🔴 **Vermelho:** Sobrecarga crítica (alerta visual imediato).
+* **Barras de Progresso:** Visualize a porcentagem de ocupação de cada membro em relação ao limite ideal.
 
-```sql
--- Tabela de membros
-CREATE TABLE members (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  role VARCHAR(255) NOT NULL,
-  email VARCHAR(255) NOT NULL,
-  overload INTEGER DEFAULT 0,
-  created_at TIMESTAMP DEFAULT NOW(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE
-);
+### 2. 🚀 Gestão de Projetos e Alocação
+Controle total sobre onde o esforço do time está sendo investido:
+* **Distribuição de Pontos:** Defina a complexidade/peso de cada projeto.
+* **Alocação Múltiplos:** Um membro pode estar em vários projetos simultaneamente; o sistema cuida da matemática.
+* **Scrum Master Dedicado:** Possibilidade de definir um Scrum Master para o projeto, contabilizando essa responsabilidade na carga de trabalho dele.
 
--- Tabela de projetos
-CREATE TABLE projects (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  description TEXT,
-  overload_points INTEGER NOT NULL,
-  allocated_members JSONB DEFAULT '[]',
-  scrum_master UUID REFERENCES members(id),
-  created_at TIMESTAMP DEFAULT NOW(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE
-);
+### 3. 🧩 Atividades Extras
+Reconhece que o trabalho não é apenas codar. O sistema permite adicionar cargas que geralmente ficam "invisíveis":
+* Participações em GT's;
+* Participação em atividades alternativas;
 
--- Tabela de atividades extras
-CREATE TABLE extra_activities (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  description TEXT,
-  member_id UUID REFERENCES members(id) ON DELETE CASCADE,
-  points INTEGER NOT NULL,
-  status VARCHAR(50) DEFAULT 'ativa',
-  created_at TIMESTAMP DEFAULT NOW(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE
-);
+### 4. 🔄 Sincronização em Tempo Real
+* **Integração com Supabase:** Todos os dados são persistidos na nuvem de forma segura.
+* **Atualização Manual Inteligente:** Botão de *refresh* com feedback visual para garantir que você esteja vendo os dados mais recentes sem precisar recarregar a página inteira.
 
--- Habilitar RLS (Row Level Security)
-ALTER TABLE members ENABLE ROW LEVEL SECURITY;
-ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
-ALTER TABLE extra_activities ENABLE ROW LEVEL SECURITY;
+### 5. 👥 Gestão de Membros
+* **CRUD Completo:** Adicione novos contratados, edite cargos ou remova membros (com modal de confirmação de segurança).
+* **Perfis:** Visualize cargo, nivel de sobrecarga e projetos alocados.
 
--- Políticas de segurança (cada usuário vê apenas seus dados)
-CREATE POLICY "Users can view own members" ON members
-  FOR SELECT USING (auth.uid() = user_id);
+---
 
-CREATE POLICY "Users can insert own members" ON members
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+## 🛠️ Stack Tecnológica
 
-CREATE POLICY "Users can update own members" ON members
-  FOR UPDATE USING (auth.uid() = user_id);
+* **Frontend:** HTML5, CSS3 Avançado, JavaScript ES6+.
+* **Backend:** Supabase (Database PostgreSQL + Authentication).
+* **Hospedagem:** Vercel.
 
-CREATE POLICY "Users can delete own members" ON members
-  FOR DELETE USING (auth.uid() = user_id);
+---
+<div align="center">
+  <img src="./assets/eject_labs_logo.svg" alt="ejectlabs_logo" width="100">
+</div>
 
--- Políticas para projetos
-CREATE POLICY "Users can view own projects" ON projects
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own projects" ON projects
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own projects" ON projects
-  FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own projects" ON projects
-  FOR DELETE USING (auth.uid() = user_id);
-
--- Políticas para atividades extras
-CREATE POLICY "Users can view own activities" ON extra_activities
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own activities" ON extra_activities
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own activities" ON extra_activities
-  FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own activities" ON extra_activities
-  FOR DELETE USING (auth.uid() = user_id);
+<div align="center">
+  <sub>Produto do EJECT LABS </sub>
+</div>
