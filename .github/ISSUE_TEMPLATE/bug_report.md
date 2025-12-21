@@ -20,16 +20,9 @@ Explique o que deveria acontecer.
 ## ❌ Comportamento Atual
 Explique o que está acontecendo atualmente.
 
-## 🖥️ Ambiente
-- Sistema Operacional:
-- Navegador:
-- Backend:
-- Frontend:
-- Banco de Dados:
-- Ambiente (Dev / Homologação / Produção):
-
 ## 📎 Evidências
 Adicione prints, logs ou vídeos que ajudem a entender o problema.
 
 ```text
 Cole aqui logs ou mensagens de erro
+```
