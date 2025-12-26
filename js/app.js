@@ -73,14 +73,16 @@ function updateFullInterface() {
 // ==========================================
 
 function calculateOverload() {
-    // Zera a sobrecarga de todos antes de recalcular
+    // 0. Zera a sobrecarga de todos antes de recalcular
     members.forEach(m => m.overload = 0);
 
-    // 1. Soma pontos de Projetos (Membro Alocado)
+    // 1. Soma pontos de PROJETOS
     projects.forEach(proj => {
-        const memberIds = proj.allocated_members || []; // Array de UUIDs
+        // Garante que é um array
+        const memberIds = proj.allocated_members || []; 
         const points = parseInt(proj.overload_points) || 0;
 
+        // Soma para a equipe de desenvolvimento
         memberIds.forEach(mId => {
             const member = members.find(m => m.id === mId);
             if (member) {
@@ -88,25 +90,61 @@ function calculateOverload() {
             }
         });
 
-        // 2. Soma pontos do Scrum Master (se houver regra específica)
-        // Assumindo que o SM recebe a mesma carga do projeto:
-        if (proj.scrum_master) {
-            const sm = members.find(m => m.id === proj.scrum_master);
+        // Soma para o Scrum Master
+        // Nota: Geralmente SM ganha +2 fixo, mas mantive sua lógica de somar os pontos do projeto
+        // Se quiser fixo, troque 'points' por 2 na linha abaixo.
+        const smId = proj.scrum_master_id || proj.scrum_master; // Aceita os dois formatos
+        if (smId) {
+            const sm = members.find(m => m.id === smId);
             if (sm) {
-                sm.overload += points; 
+                sm.overload += 2; // (Recomendado: SM ganha +2 fixo. Se quiser o valor do projeto, use 'points')
             }
         }
     });
 
-    // 3. Soma Atividades Extras
+    // 2. Soma ATIVIDADES EXTRAS (CORRIGIDO PARA ARRAY)
     extraActivities.forEach(act => {
         if (act.status === 'ativa') {
-            const member = members.find(m => m.id === act.member_id);
-            if (member) {
-                member.overload += (parseInt(act.points) || 0);
+            const points = parseInt(act.points) || 0;
+            
+            // Verifica se é o novo formato (Array de membros)
+            if (act.allocated_members && Array.isArray(act.allocated_members)) {
+                act.allocated_members.forEach(mId => {
+                    const member = members.find(m => m.id === mId);
+                    if (member) {
+                        member.overload += points;
+                    }
+                });
+            } 
+            // Suporte para formato antigo (caso tenha sobrado algo no banco)
+            else if (act.member_id) {
+                const member = members.find(m => m.id === act.member_id);
+                if (member) {
+                    member.overload += points;
+                }
             }
         }
     });
+
+    // 3. Soma TESTES (ADICIONADO)
+    // Verifica se a variável global projectTests existe (vinda do testes.js)
+    if (typeof projectTests !== 'undefined' && Array.isArray(projectTests)) {
+        projectTests.forEach(test => {
+            if (test.status === 'em_andamento') {
+                const points = parseInt(test.overload_points) || 0;
+                
+                // Itera sobre os membros do teste
+                if (test.members && Array.isArray(test.members)) {
+                    test.members.forEach(mId => {
+                        const member = members.find(m => m.id === mId);
+                        if (member) {
+                            member.overload += points;
+                        }
+                    });
+                }
+            }
+        });
+    }
 }
 
 
@@ -228,40 +266,67 @@ function showFloatingAlert(message, type = 'success') {
     }, 4000);
 }
 
-// Funções de UI originais (Tabs, Sliders)
 function setupTabNavigation() {
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabIndicator = document.getElementById('tabIndicator');
 
+    // Função interna para mover o indicador para o botão correto
+    function moveIndicator(element) {
+        if (!tabIndicator || !element) return;
+        
+        // Pega a largura exata e a posição do botão clicado em pixels
+        tabIndicator.style.width = `${element.offsetWidth}px`;
+        tabIndicator.style.transform = `translateX(${element.offsetLeft}px)`;
+    }
+
+    // Inicializa na aba que já está ativa ao carregar a página
+    const activeBtn = document.querySelector('.tab-button.active');
+    if (activeBtn) {
+        // Um pequeno timeout garante que o CSS carregou e as medidas estão certas
+        setTimeout(() => moveIndicator(activeBtn), 50);
+    }
+
     tabButtons.forEach(button => {
-        button.addEventListener('click', function () {
+        button.addEventListener('click', function (e) {
+            e.preventDefault();
             const tabId = this.getAttribute('data-tab');
 
-            // Remover classe active de todos os botões e conteúdos
+            // 1. UI: Remover classe active de todos
             tabButtons.forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
-            // Adicionar classe active ao botão clicado
+            // 2. UI: Ativar o clicado
             this.classList.add('active');
+            const targetContent = document.getElementById(tabId);
+            if(targetContent) targetContent.classList.add('active');
 
-            // Mostrar o conteúdo correspondente
-            document.getElementById(tabId).classList.add('active');
+            // 3. UI: Mover o indicador visualmente
+            moveIndicator(this);
 
-            // Mover indicador de aba
-            const buttonIndex = Array.from(tabButtons).indexOf(this);
-            tabIndicator.style.transform = `translateX(${buttonIndex * 100}%)`;
-
-            // Atualizar dashboard quando for ativada
+            // 4. DADOS: Atualizar as abas específicas
             if (tabId === 'dashboard') {
-                updateDashboard();
-            } else if (tabId === 'scrum') {
-                updateScrumSelects();
-                renderScrumMasters();
-            } else if (tabId === 'activities') {
-                updateActivitySelects();
-                renderActivities();
+                if(typeof updateDashboard === 'function') updateDashboard();
+            } 
+            else if (tabId === 'scrum') {
+                if(typeof updateScrumSelects === 'function') updateScrumSelects();
+                if(typeof renderScrumMasters === 'function') renderScrumMasters();
+            } 
+            else if (tabId === 'activities') {
+                if(typeof updateActivitySelects === 'function') updateActivitySelects();
+                if(typeof renderActivities === 'function') renderActivities();
+            }
+            // Adicionado suporte para a aba de Testes
+            else if (tabId === 'tests') {
+                if(typeof updateTestUIHelpers === 'function') updateTestUIHelpers();
+                if(typeof renderTests === 'function') renderTests();
             }
         });
+    });
+
+    // Ajusta o indicador se o usuário redimensionar a janela
+    window.addEventListener('resize', () => {
+        const currentActive = document.querySelector('.tab-button.active');
+        if (currentActive) moveIndicator(currentActive);
     });
 }
 
