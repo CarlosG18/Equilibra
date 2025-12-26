@@ -65,6 +65,9 @@
                 <button class="tab-button" data-tab="projects">
                     <i class="fas fa-project-diagram"></i> Projetos
                 </button>
+                <button class="tab-button" data-tab="tests">
+                    <i class="fas fa-vial"></i> Testes
+                </button>
                 <button class="tab-button" data-tab="scrum">
                     <i class="fas fa-user-shield"></i> Scrum Masters
                 </button>
@@ -309,6 +312,72 @@
                 </div>
             </div>
 
+            <!-- testes tab -->
+            <div id="tests" class="tab-content">
+                <div class="card" style="border-left-color: #ff9f1c;">
+                    <h2><i class="fas fa-vial"></i> Novo Teste</h2>
+                    <form id="testForm">
+                        <div class="form-group">
+                            <label>Projeto Vinculado</label>
+                            <select id="testProjectSelect" class="form-control" required>
+                                <option value="">Carregando projetos...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nome do Teste / Ciclo</label>
+                            <input type="text" id="testName" class="form-control"
+                                placeholder="Ex: Teste de Regressão V2" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Sobrecarga do Teste: <span id="testPointsVal"
+                                    style="color: #ff9f1c; font-weight: bold;">3</span></label>
+                            <input type="range" id="testPoints" class="form-control" min="1" max="10" value="3">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Status Inicial</label>
+                            <select id="testStatus" class="form-control">
+                                <option value="em_andamento">Em Andamento (Gera Carga)</option>
+                                <option value="concluido">Concluído (Histórico)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Alocar Membros para Teste</label>
+                            <div id="testMembersChecks" class="checkbox-group"
+                                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn" style="background-color: #ff9f1c; color: white;">
+                            <i class="fas fa-save"></i> Criar Teste
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>Testes Registrados</h2>
+                    <div class="table-container">
+                        <table id="testsTable">
+                            <thead>
+                                <tr>
+                                    <th>Teste</th>
+                                    <th>Projeto</th>
+                                    <th>Membros Alocados</th>
+                                    <th>Carga</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="testsList">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- Scrum Masters Tab -->
             <div id="scrum" class="tab-content">
                 <div class="alert alert-purple">
@@ -490,6 +559,7 @@
     <script src="js/membros.js"></script>
     <script src="js/projetos.js"></script>
     <script src="js/scrum.js"></script>
+    <script src="js/testes.js"></script>
 
 </body>
 
