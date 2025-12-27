@@ -166,7 +166,7 @@ function renderActivities() {
             </td>
             <td>
                 <div class="action-buttons">
-                    <button class="btn btn-info btn-extra-small" onclick="editActivity('${activity.id}')" title="Editar">
+                    <button class="btn btn-info btn-extra-small" onclick="editActivity('${activity.id}'); openModal('modalActivity')" title="Editar">
                         <i class="fas fa-edit"></i>
                     </button>
                     <button class="btn btn-danger btn-extra-small" onclick="confirmDelete('activity', '${activity.id}', '${activity.name}')" title="Remover">

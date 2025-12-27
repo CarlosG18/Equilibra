@@ -108,7 +108,7 @@ function renderMembers() {
             </td>
             <td>
                 <div class="action-buttons">
-                    <button class="btn btn-info btn-extra-small" onclick="editMember('${member.id}')">
+                    <button class="btn btn-info btn-extra-small" onclick="editMember('${member.id}'); openModal('modalMember')">
                         <i class="fas fa-edit"></i> Editar
                     </button>
                     <button class="btn btn-danger btn-extra-small" onclick="confirmDelete('member', '${member.id}', '${member.name}')">
@@ -148,7 +148,7 @@ function editMember(id) {
     document.getElementById('memberId').value = member.id; // Se houver campo hidden
     document.getElementById('memberName').value = member.name;
     document.getElementById('memberRole').value = member.role;
-    document.getElementById('memberEmail').value = member.email;
+    //document.getElementById('memberEmail').value = member.email;
 
     // 2. Alterar estado visual para edição
     editingMemberId = id; // Variável global de controle

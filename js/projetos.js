@@ -140,7 +140,7 @@ function renderProjects() {
             <td>${teamHtml || 'Nenhum membro alocado'}</td>
             <td>
                 <div class="action-buttons">
-                    <button class="btn btn-info btn-extra-small" onclick="editProject('${proj.id}')">
+                    <button class="btn btn-info btn-extra-small" onclick="editProject('${proj.id}'); openModal('modalProject')">
                         <i class="fas fa-edit"></i> Editar
                     </button>
                     <button class="btn btn-danger btn-extra-small" onclick="confirmDelete('project', '${proj.id}', '${proj.name}')">
