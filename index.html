@@ -10,6 +10,7 @@
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/modal.css">
 </head>
 
 <body>
@@ -191,38 +192,14 @@
 
             <!-- Members Tab -->
             <div id="members" class="tab-content">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle fa-lg"></i>
-                    <div>Gerencie os membros da equipe. Adicione, edite ou remova membros.</div>
-                </div>
-
-                <div class="card">
-                    <h2><i class="fas fa-user-plus"></i> Cadastrar Novo Membro</h2>
-                    <form id="memberForm">
-                        <input type="hidden" id="memberId" value="">
-                        <div class="form-group">
-                            <label for="memberName"><i class="fas fa-user"></i> Nome do Membro</label>
-                            <input type="text" id="memberName" class="form-control" placeholder="Digite o nome completo"
-                                required>
-                        </div>
-                        <div class="form-group">
-                            <label for="memberRole"><i class="fas fa-briefcase"></i> Cargo/Função</label>
-                            <input type="text" id="memberRole" class="form-control"
-                                placeholder="Ex: Desenvolvedor, Designer, Gerente" required>
-                        </div>
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-success" id="memberSubmitBtn">
-                                <i class="fas fa-save"></i> Cadastrar Membro
-                            </button>
-                            <button type="button" class="btn btn-warning" id="memberCancelBtn" style="display: none;">
-                                <i class="fas fa-times"></i> Cancelar Edição
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="card">
+                <div class="header-actions">
                     <h2><i class="fas fa-users"></i> Membros Cadastrados</h2>
+                    <button class="btn-add-floating" onclick="openModal('modalMember')">
+                        <i class="fas fa-plus"></i> Novo Membro
+                    </button>
+                </div>
+                <div class="card">
+
                     <div class="table-container">
                         <table id="membersTable">
                             <thead>
@@ -243,56 +220,15 @@
 
             <!-- Projects Tab -->
             <div id="projects" class="tab-content">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle fa-lg"></i>
-                    <div>Gerencie os projetos. Adicione projetos, defina pontos de sobrecarga, aloque membros e edite.
-                    </div>
+
+                <div class="header-actions">
+                    <h2><i class="fas fa-project-diagram"></i> Projetos Cadastrados</h2>
+                    <button class="btn-add-floating" onclick="openModal('modalProject')">
+                        <i class="fas fa-plus"></i> Novo Projeto
+                    </button>
                 </div>
 
                 <div class="card">
-                    <h2><i class="fas fa-project-diagram"></i> Cadastrar Novo Projeto</h2>
-                    <form id="projectForm">
-                        <input type="hidden" id="projectId" value="">
-                        <div class="form-group">
-                            <label for="projectName"><i class="fas fa-tag"></i> Nome do Projeto</label>
-                            <input type="text" id="projectName" class="form-control"
-                                placeholder="Digite o nome do projeto" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="projectDescription"><i class="fas fa-align-left"></i> Descrição</label>
-                            <textarea id="projectDescription" class="form-control" rows="3"
-                                placeholder="Descreva o projeto"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="overloadPoints"><i class="fas fa-weight-hanging"></i> Pontos de Sobrecarga
-                                (1-10)</label>
-                            <input type="range" id="overloadPoints" class="form-control" min="1" max="10" value="5"
-                                style="height: 10px;">
-                            <div style="display: flex; justify-content: space-between; margin-top: 10px;">
-                                <small>Baixa</small>
-                                <span id="pointsValue" style="font-weight: bold; color: var(--primary);">5 pontos</span>
-                                <small>Alta</small>
-                            </div>
-                        </div>
-
-                        <h3 class="section-title"><i class="fas fa-user-tag"></i> Alocar Membros ao Projeto</h3>
-                        <div id="membersAllocation">
-                            <!-- Alocações serão geradas dinamicamente -->
-                        </div>
-
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-success" id="projectSubmitBtn">
-                                <i class="fas fa-save"></i> Cadastrar Projeto
-                            </button>
-                            <button type="button" class="btn btn-warning" id="projectCancelBtn" style="display: none;">
-                                <i class="fas fa-times"></i> Cancelar Edição
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="card">
-                    <h2><i class="fas fa-list-alt"></i> Projetos Cadastrados</h2>
                     <div class="table-container">
                         <table id="projectsTable">
                             <thead>
@@ -314,51 +250,15 @@
 
             <!-- testes tab -->
             <div id="tests" class="tab-content">
-                <div class="card" style="border-left-color: #ff9f1c;">
-                    <h2><i class="fas fa-vial"></i> Novo Teste</h2>
-                    <form id="testForm">
-                        <div class="form-group">
-                            <label>Projeto Vinculado</label>
-                            <select id="testProjectSelect" class="form-control" required>
-                                <option value="">Carregando projetos...</option>
-                            </select>
-                        </div>
 
-                        <div class="form-group">
-                            <label>Nome do Teste / Ciclo</label>
-                            <input type="text" id="testName" class="form-control"
-                                placeholder="Ex: Teste de Regressão V2" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Sobrecarga do Teste: <span id="testPointsVal"
-                                    style="color: #ff9f1c; font-weight: bold;">3</span></label>
-                            <input type="range" id="testPoints" class="form-control" min="1" max="10" value="3">
-                        </div>
-
-                        <div class="form-group">
-                            <label>Status Inicial</label>
-                            <select id="testStatus" class="form-control">
-                                <option value="em_andamento">Em Andamento (Gera Carga)</option>
-                                <option value="concluido">Concluído (Histórico)</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Alocar Membros para Teste</label>
-                            <div id="testMembersChecks" class="checkbox-group"
-                                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn" style="background-color: #ff9f1c; color: white;">
-                            <i class="fas fa-save"></i> Criar Teste
-                        </button>
-                    </form>
+                <div class="header-actions">
+                    <h2><i class="fas fa-vial"></i> Testes</h2>
+                    <button class="btn-add-floating btn-add-test" onclick="openModal('modalTest')">
+                        <i class="fas fa-plus"></i> Novo Teste
+                    </button>
                 </div>
 
                 <div class="card">
-                    <h2>Testes Registrados</h2>
                     <div class="table-container">
                         <table id="testsTable">
                             <thead>
@@ -380,40 +280,15 @@
 
             <!-- Scrum Masters Tab -->
             <div id="scrum" class="tab-content">
-                <div class="alert alert-purple">
-                    <i class="fas fa-user-shield fa-lg"></i>
-                    <div>Defina os Scrum Masters para cada projeto. Um membro pode ser Scrum Master de um ou mais
-                        projetos.
-                    </div>
-                </div>
 
-                <div class="card">
-                    <h2><i class="fas fa-user-shield"></i> Definir Scrum Masters</h2>
-                    <form id="scrumForm">
-                        <div class="form-group">
-                            <label for="scrumProject"><i class="fas fa-project-diagram"></i> Selecione o Projeto</label>
-                            <select id="scrumProject" class="form-control" required>
-                                <option value="">Selecione um projeto</option>
-                                <!-- Opções serão preenchidas dinamicamente -->
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="scrumMaster"><i class="fas fa-user-shield"></i> Selecione o Scrum Master</label>
-                            <select id="scrumMaster" class="form-control" required>
-                                <option value="">Selecione um membro</option>
-                                <!-- Opções serão preenchidas dinamicamente -->
-                            </select>
-                        </div>
-
-                        <button type="submit" class="btn btn-purple">
-                            <i class="fas fa-save"></i> Definir Scrum Master
-                        </button>
-                    </form>
-                </div>
-
-                <div class="card">
+                <div class="header-actions">
                     <h2><i class="fas fa-list-check"></i> Scrum Masters Definidos</h2>
+                    <button class="btn-add-floating btn-add-scrum" onclick="openModal('modalScrum')">
+                        <i class="fas fa-crown"></i> Definir Scrum Master
+                    </button>
+                </div>
+
+                <div class="card">
                     <div class="table-container">
                         <table id="scrumTable">
                             <thead>
@@ -434,66 +309,15 @@
 
             <!-- Activities Tab -->
             <div id="activities" class="tab-content">
-                <div class="alert alert-pink">
-                    <i class="fas fa-list-check fa-lg"></i>
-                    <div>Gerencie atividades extras dos membros. Atividades extras também geram sobrecarga.</div>
+
+                <div class="header-actions">
+                    <h2><i class="fas fa-list-check"></i> Atividades Extras</h2>
+                    <button class="btn-add-floating btn-add-activity" onclick="openModal('modalActivity')">
+                        <i class="fas fa-plus"></i> Nova Atividade
+                    </button>
                 </div>
 
                 <div class="card">
-                    <h2><i class="fas fa-plus-circle"></i> Cadastrar Atividade Extra</h2>
-                    <form id="activityForm">
-                        <input type="hidden" id="activityId" value="">
-                        <div class="form-group">
-                            <label for="activityName"><i class="fas fa-tasks"></i> Nome da Atividade</label>
-                            <input type="text" id="activityName" class="form-control"
-                                placeholder="Ex: Reunião de alinhamento, Mentoria, Suporte" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="activityDescription"><i class="fas fa-align-left"></i> Descrição</label>
-                            <textarea id="activityDescription" class="form-control" rows="3"
-                                placeholder="Descreva a atividade extra"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-users"></i> Membros Responsáveis</label>
-                            <div id="activityMembersAllocation" class="checkbox-group"
-                                style="max-height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
-                                <span style="color: #888;">Carregando membros...</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="activityPoints"><i class="fas fa-weight-hanging"></i> Pontos de Sobrecarga
-                                (1-5)</label>
-                            <input type="range" id="activityPoints" class="form-control" min="1" max="5" value="3"
-                                style="height: 10px;">
-                            <div style="display: flex; justify-content: space-between; margin-top: 10px;">
-                                <small>Baixa</small>
-                                <span id="activityPointsValue" style="font-weight: bold; color: #f72585;">3
-                                    pontos</span>
-                                <small>Alta</small>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="activityStatus"><i class="fas fa-circle"></i> Status</label>
-                            <select id="activityStatus" class="form-control" required>
-                                <option value="ativa">Ativa</option>
-                                <option value="concluida">Concluída</option>
-                                <option value="pendente">Pendente</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-pink" id="activitySubmitBtn">
-                                <i class="fas fa-save"></i> Cadastrar Atividade
-                            </button>
-                            <button type="button" class="btn btn-warning" id="activityCancelBtn" style="display: none;">
-                                <i class="fas fa-times"></i> Cancelar Edição
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="card">
-                    <h2><i class="fas fa-list-check"></i> Atividades Extras Cadastradas</h2>
                     <div class="table-container">
                         <table id="activitiesTable">
                             <thead>
@@ -525,6 +349,220 @@
                 <p>Desenvolvido pela EJECT</p>
             </footer>
         </div>
+
+        <!-- modais -->
+
+        <!-- modal de criação de membro -->
+        <div id="modalMember" class="modal-overlay">
+            <div class="modal-content" style="border-color: #4361ee;">
+                <button class="btn-close-modal" onclick="closeModal('modalMember')">&times;</button>
+                <h2><i class="fas fa-user-plus"></i> Cadastrar Novo Membro</h2>
+                <form id="memberForm">
+                    <input type="hidden" id="memberId" value="">
+                    <div class="form-group">
+                        <label for="memberName"><i class="fas fa-user"></i> Nome do Membro</label>
+                        <input type="text" id="memberName" class="form-control" placeholder="Digite o nome completo"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label for="memberRole"><i class="fas fa-briefcase"></i> Cargo/Função</label>
+                        <input type="text" id="memberRole" class="form-control"
+                            placeholder="Ex: Desenvolvedor, Designer, Gerente" required>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-success" id="memberSubmitBtn">
+                            <i class="fas fa-save"></i> Cadastrar Membro
+                        </button>
+                        <button type="button" class="btn btn-warning" id="memberCancelBtn" style="display: none;">
+                            <i class="fas fa-times"></i> Cancelar Edição
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- modal de criação de projeto -->
+        <div id="modalProject" class="modal-overlay">
+            <div class="modal-content" style="border-color: #4361ee;">
+                <button class="btn-close-modal" onclick="closeModal('modalProject')">&times;</button>
+                <h2><i class="fas fa-project-diagram"></i> Cadastrar Novo Projeto</h2>
+                <form id="projectForm">
+                    <input type="hidden" id="projectId" value="">
+                    <div class="form-group">
+                        <label for="projectName"><i class="fas fa-tag"></i> Nome do Projeto</label>
+                        <input type="text" id="projectName" class="form-control" placeholder="Digite o nome do projeto"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label for="projectDescription"><i class="fas fa-align-left"></i> Descrição</label>
+                        <textarea id="projectDescription" class="form-control" rows="3"
+                            placeholder="Descreva o projeto"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="overloadPoints"><i class="fas fa-weight-hanging"></i> Pontos de Sobrecarga
+                            (1-10)</label>
+                        <input type="range" id="overloadPoints" class="form-control" min="1" max="10" value="5"
+                            style="height: 10px;">
+                        <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                            <small>Baixa</small>
+                            <span id="pointsValue" style="font-weight: bold; color: var(--primary);">5 pontos</span>
+                            <small>Alta</small>
+                        </div>
+                    </div>
+
+                    <h3 class="section-title"><i class="fas fa-user-tag"></i> Alocar Membros ao Projeto</h3>
+                    <div id="membersAllocation">
+                        <!-- Alocações serão geradas dinamicamente -->
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-success" id="projectSubmitBtn">
+                            <i class="fas fa-save"></i> Cadastrar Projeto
+                        </button>
+                        <button type="button" class="btn btn-warning" id="projectCancelBtn" style="display: none;">
+                            <i class="fas fa-times"></i> Cancelar Edição
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- modal de criação de teste -->
+        <div id="modalTest" class="modal-overlay">
+            <div class="modal-content" style="border-color: #4361ee;">
+                <button class="btn-close-modal" onclick="closeModal('modalTest')">&times;</button>
+                <h2><i class="fas fa-vial"></i> Novo Teste</h2>
+                <form id="testForm">
+                    <div class="form-group">
+                        <label>Projeto Vinculado</label>
+                        <select id="testProjectSelect" class="form-control" required>
+                            <option value="">Carregando projetos...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nome do Teste / Ciclo</label>
+                        <input type="text" id="testName" class="form-control" placeholder="Ex: Teste de Regressão V2"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Sobrecarga do Teste: <span id="testPointsVal"
+                                style="color: #ff9f1c; font-weight: bold;">3</span></label>
+                        <input type="range" id="testPoints" class="form-control" min="1" max="10" value="3">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Status Inicial</label>
+                        <select id="testStatus" class="form-control">
+                            <option value="em_andamento">Em Andamento (Gera Carga)</option>
+                            <option value="concluido">Concluído (Histórico)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Alocar Membros para Teste</label>
+                        <div id="testMembersChecks" class="checkbox-group"
+                            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn" style="background-color: #ff9f1c; color: white;">
+                        <i class="fas fa-save"></i> Criar Teste
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- modal de criação de Scrum -->
+        <div id="modalScrum" class="modal-overlay">
+            <div class="modal-content" style="border-color: #4361ee;">
+                <button class="btn-close-modal" onclick="closeModal('modalScrum ')">&times;</button>
+                <h2><i class="fas fa-user-shield"></i> Definir Scrum Masters</h2>
+                <form id="scrumForm">
+                    <div class="form-group">
+                        <label for="scrumProject"><i class="fas fa-project-diagram"></i> Selecione o
+                            Projeto</label>
+                        <select id="scrumProject" class="form-control" required>
+                            <option value="">Selecione um projeto</option>
+                            <!-- Opções serão preenchidas dinamicamente -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="scrumMaster"><i class="fas fa-user-shield"></i> Selecione o Scrum
+                            Master</label>
+                        <select id="scrumMaster" class="form-control" required>
+                            <option value="">Selecione um membro</option>
+                            <!-- Opções serão preenchidas dinamicamente -->
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-purple">
+                        <i class="fas fa-save"></i> Definir Scrum Master
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- modal de criação de atividades extras -->
+        <div id="modalActivity" class="modal-overlay">
+            <div class="modal-content" style="border-color: #4361ee;">
+                <button class="btn-close-modal" onclick="closeModal('modalActivity')">&times;</button>
+                <h2><i class="fas fa-plus-circle"></i> Cadastrar Atividade Extra</h2>
+                <form id="activityForm">
+                    <input type="hidden" id="activityId" value="">
+                    <div class="form-group">
+                        <label for="activityName"><i class="fas fa-tasks"></i> Nome da Atividade</label>
+                        <input type="text" id="activityName" class="form-control"
+                            placeholder="Ex: Reunião de alinhamento, Mentoria, Suporte" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="activityDescription"><i class="fas fa-align-left"></i> Descrição</label>
+                        <textarea id="activityDescription" class="form-control" rows="3"
+                            placeholder="Descreva a atividade extra"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-users"></i> Membros Responsáveis</label>
+                        <div id="activityMembersAllocation" class="checkbox-group"
+                            style="max-height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
+                            <span style="color: #888;">Carregando membros...</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="activityPoints"><i class="fas fa-weight-hanging"></i> Pontos de Sobrecarga
+                            (1-5)</label>
+                        <input type="range" id="activityPoints" class="form-control" min="1" max="5" value="3"
+                            style="height: 10px;">
+                        <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                            <small>Baixa</small>
+                            <span id="activityPointsValue" style="font-weight: bold; color: #f72585;">3
+                                pontos</span>
+                            <small>Alta</small>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="activityStatus"><i class="fas fa-circle"></i> Status</label>
+                        <select id="activityStatus" class="form-control" required>
+                            <option value="ativa">Ativa</option>
+                            <option value="concluida">Concluída</option>
+                            <option value="pendente">Pendente</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-pink" id="activitySubmitBtn">
+                            <i class="fas fa-save"></i> Cadastrar Atividade
+                        </button>
+                        <button type="button" class="btn btn-warning" id="activityCancelBtn" style="display: none;">
+                            <i class="fas fa-times"></i> Cancelar Edição
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
 
         <!-- Modal de Confirmação -->
         <div id="confirmModal" class="modal-overlay">
@@ -560,6 +598,7 @@
     <script src="js/projetos.js"></script>
     <script src="js/scrum.js"></script>
     <script src="js/testes.js"></script>
+    <script src="js/modal.js"></script>
 
 </body>
 
