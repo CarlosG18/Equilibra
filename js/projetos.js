@@ -12,21 +12,22 @@ if (projectForm) {
         const descInput = document.getElementById('projectDescription');
         const desc = descInput ? descInput.value : '';
         
-        // Verifica se o ID é projectPoints ou overloadPoints (use o que estiver no seu HTML)
+        // Verifica se o ID é projectPoints ou overloadPoints
         const pointsInput = document.getElementById('overloadPoints') || document.getElementById('projectPoints');
         const points = pointsInput ? pointsInput.value : 0;
 
-        // IMPORTANTE: Descomentei e ajustei a captura do Scrum Master
-        //const smSelect = document.getElementById('scrumMasterSelect');
-        //const smId = smSelect && smSelect.value !== "" ? smSelect.value : null;
+        // 2. TENTAR RECUPERAR O ID DO PROJETO DE FORMA SEGURA
+        // Prioriza o valor do input hidden 'projectId', se não tiver, tenta a variável global
+        const hiddenIdInput = document.getElementById('projectId');
+        const idParaEditar = (hiddenIdInput && hiddenIdInput.value) ? hiddenIdInput.value : editingProjectId;
 
-        // 2. COLETAR MEMBROS (CHECKBOXES)
+        // 3. COLETAR MEMBROS
         const selectedMembers = [];
         document.querySelectorAll('input[name="projectMembers"]:checked').forEach(cb => {
             selectedMembers.push(cb.value);
         });
 
-        // 3. FEEDBACK VISUAL NO BOTÃO
+        // 4. FEEDBACK VISUAL
         const submitBtn = this.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
@@ -36,26 +37,34 @@ if (projectForm) {
             let res;
 
             // --- DECISÃO: CRIAR OU ATUALIZAR? ---
-            if (editingProjectId) {
+            if (idParaEditar) {
                 // >>> MODO EDIÇÃO <<<
+                
+                // CORREÇÃO DO SCRUM MASTER:
+                // Busca o projeto original para manter o Scrum Master que já estava definido
+                let currentScrumMasterId = null;
+                const originalProject = projects.find(p => p.id === idParaEditar);
+                if (originalProject) {
+                    currentScrumMasterId = originalProject.scrum_master;
+                }
+
+                // Chama atualização passando 'idParaEditar' e o 'currentScrumMasterId'
                 res = await ProjectService.atualizarProjeto(
-                    editingProjectId, 
+                    idParaEditar, 
                     name, 
                     desc, 
                     points, 
-                    null, 
+                    currentScrumMasterId, // Mantém o SM original
                     selectedMembers
                 );
 
                 if (res.success) {
-                    // Atualiza o objeto no array local 'projects'
-                    const index = projects.findIndex(p => p.id === editingProjectId);
+                    // Atualiza localmente
+                    const index = projects.findIndex(p => p.id === idParaEditar);
                     if (index !== -1) {
                         projects[index] = res.data;
                     }
                     showFloatingAlert('Projeto atualizado com sucesso!');
-                    
-                    // Sai do modo edição e limpa o form
                     resetProjectFormState();
                 }
 
@@ -65,7 +74,7 @@ if (projectForm) {
                     name, 
                     desc, 
                     points, 
-                    null, 
+                    null, // Novo projeto começa sem SM (definido na outra aba)
                     selectedMembers
                 );
                 
@@ -73,16 +82,14 @@ if (projectForm) {
                     projects.push(res.data);
                     showFloatingAlert('Projeto criado com sucesso!');
                     this.reset();
-                    // Limpa os checkboxes visualmente
                     updateAllocationCheckboxes(); 
                 }
             }
 
-            // --- FINALIZAÇÃO COMUM ---
+            // --- FINALIZAÇÃO ---
             if (!res.success) {
                 showFloatingAlert('Erro: ' + res.error, 'error');
             } else {
-                // Atualiza toda a tela (Tabelas, Cards, Gráficos)
                 updateFullInterface();
             }
 
@@ -90,8 +97,8 @@ if (projectForm) {
             console.error("Erro no processamento:", err);
             showFloatingAlert('Erro inesperado ao salvar projeto.', 'error');
         } finally {
-            // Restaura o botão para o estado correto
-            if (editingProjectId) {
+            // Restaura botão
+            if (typeof editingProjectId !== 'undefined' && editingProjectId) {
                 submitBtn.innerHTML = '<i class="fas fa-save"></i> Atualizar Projeto';
             } else {
                 submitBtn.innerHTML = originalText || '<i class="fas fa-plus"></i> Criar Projeto';
