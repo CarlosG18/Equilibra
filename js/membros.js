@@ -111,7 +111,7 @@ function renderMembers() {
                     <button class="btn btn-info btn-extra-small" onclick="editMember('${member.id}'); openModal('modalMember')">
                         <i class="fas fa-edit"></i> Editar
                     </button>
-                    <button class="btn btn-danger btn-extra-small" onclick="confirmDelete('member', '${member.id}', '${member.name}')">
+                    <button class="btn btn-danger btn-extra-small" onclick="confirmDelete('member', '${member.id}', '${member.name.replace(/'/g, "\\'")}')">
                         <i class="fas fa-trash"></i> Remover
                     </button>
                 </div>
@@ -125,16 +125,13 @@ function renderMembers() {
 
 // Exemplo de função de exclusão (necessário implementar no ProjectService)
 async function deleteMember(id) {
-    if(confirm('Tem certeza que deseja remover este membro?')) {
-        const res = await ProjectService.removerMembro(id); // Criar essa função no supabase.js
-        if(res.success) {
-            // Remove localmente
-            members = members.filter(m => m.id !== id);
-            showFloatingAlert('Membro removido.');
-            updateFullInterface();
-        } else {
-            showFloatingAlert('Erro ao remover: ' + res.error, 'error');
-        }
+    const res = await ProjectService.removerMembro(id);
+    if(res.success) {
+        members = members.filter(m => m.id !== id);
+        showFloatingAlert('Membro removido.');
+        updateFullInterface();
+    } else {
+        showFloatingAlert('Erro ao remover: ' + res.error, 'error');
     }
 }
 

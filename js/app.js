@@ -49,7 +49,7 @@ async function initApp() {
         if(spinner) spinner.remove();
 
         // Renderiza tudo
-        //updateFullInterface();
+        updateFullInterface();
     } else {
         alert("Erro ao carregar dados: " + resultado.error);
     }
@@ -308,11 +308,11 @@ function setupTabNavigation() {
                 if(typeof updateDashboard === 'function') updateDashboard();
             } 
             else if (tabId === 'scrum') {
-                if(typeof updateScrumSelects === 'function') updateScrumSelects();
+                if(typeof updateScrumManagementSelects === 'function') updateScrumManagementSelects();
                 if(typeof renderScrumMasters === 'function') renderScrumMasters();
-            } 
+            }
             else if (tabId === 'activities') {
-                if(typeof updateActivitySelects === 'function') updateActivitySelects();
+                if(typeof updateActivityAllocationCheckboxes === 'function') updateActivityAllocationCheckboxes();
                 if(typeof renderActivities === 'function') renderActivities();
             }
             // Adicionado suporte para a aba de Testes

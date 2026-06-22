@@ -135,12 +135,12 @@ function renderProjects() {
                 <small style="color: var(--gray);">${proj.description}</small>
             </td>
             <td>
-                <span class="overload-indicator ${getOverloadClassForMember(proj.overloadPoints)}">
+                <span class="overload-indicator ${getOverloadClassForMember(proj.overload_points)}">
                     ${proj.overload_points} pontos
                 </span>
             </td>
             <td>
-                ${sm !== 'Não definido' ?
+                ${sm ?
                 `<span class="scrum-indicator">${smName}</span>` :
                 '<span style="color: var(--gray); font-style: italic;">Não definido</span>'}
             </td>
@@ -150,7 +150,7 @@ function renderProjects() {
                     <button class="btn btn-info btn-extra-small" onclick="editProject('${proj.id}'); openModal('modalProject')">
                         <i class="fas fa-edit"></i> Editar
                     </button>
-                    <button class="btn btn-danger btn-extra-small" onclick="confirmDelete('project', '${proj.id}', '${proj.name}')">
+                    <button class="btn btn-danger btn-extra-small" onclick="confirmDelete('project', '${proj.id}', '${proj.name.replace(/'/g, "\\'")}')">
                         <i class="fas fa-trash"></i> Remover
                     </button>
                 </div>

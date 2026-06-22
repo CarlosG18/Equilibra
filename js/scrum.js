@@ -5,7 +5,7 @@ function renderScrumMasters() {
     scrumList.innerHTML = '';
 
     // Filtrar projetos que têm Scrum Master
-    const projectsWithScrum = projects.filter(p => p.scrumMaster !== null);
+    const projectsWithScrum = projects.filter(p => p.scrum_master !== null);
 
     if (projectsWithScrum.length === 0) {
         scrumList.innerHTML = `
@@ -34,7 +34,7 @@ function renderScrumMasters() {
             </td>
             <td>${scrumMaster.email}</td>
             <td>
-                <button class="btn btn-danger btn-extra-small" onclick="confirmDelete('scrum', '${project.id}', '${project.name}')">
+                <button class="btn btn-danger btn-extra-small" onclick="confirmDelete('scrum', '${project.id}', '${project.name.replace(/'/g, "\\'")}')">
                     <i class="fas fa-user-slash"></i> Remover
                 </button>
             </td>
