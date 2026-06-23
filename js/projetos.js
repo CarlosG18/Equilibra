@@ -7,105 +7,66 @@ if (projectForm) {
     projectForm.addEventListener('submit', async function (e) {
         e.preventDefault();
 
-        // 1. COLETAR DADOS DO FORMULÁRIO
         const name = document.getElementById('projectName').value;
         const descInput = document.getElementById('projectDescription');
         const desc = descInput ? descInput.value : '';
-        
-        // Verifica se o ID é projectPoints ou overloadPoints
         const pointsInput = document.getElementById('overloadPoints') || document.getElementById('projectPoints');
         const points = pointsInput ? pointsInput.value : 0;
 
-        // 2. TENTAR RECUPERAR O ID DO PROJETO DE FORMA SEGURA
-        // Prioriza o valor do input hidden 'projectId', se não tiver, tenta a variável global
-        const hiddenIdInput = document.getElementById('projectId');
-        const idParaEditar = (hiddenIdInput && hiddenIdInput.value) ? hiddenIdInput.value : editingProjectId;
-
-        // 3. COLETAR MEMBROS
         const selectedMembers = [];
         document.querySelectorAll('input[name="projectMembers"]:checked').forEach(cb => {
             selectedMembers.push(cb.value);
         });
 
-        // 4. FEEDBACK VISUAL
         const submitBtn = this.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
         submitBtn.disabled = true;
 
         try {
-            let res;
-
-            // --- DECISÃO: CRIAR OU ATUALIZAR? ---
-            if (idParaEditar) {
-                // >>> MODO EDIÇÃO <<<
-                
-                // CORREÇÃO DO SCRUM MASTER:
-                // Busca o projeto original para manter o Scrum Master que já estava definido
-                let currentScrumMasterId = null;
-                const originalProject = projects.find(p => p.id === idParaEditar);
-                if (originalProject) {
-                    currentScrumMasterId = originalProject.scrum_master;
-                }
-
-                // Chama atualização passando 'idParaEditar' e o 'currentScrumMasterId'
-                res = await ProjectService.atualizarProjeto(
-                    idParaEditar, 
-                    name, 
-                    desc, 
-                    points, 
-                    currentScrumMasterId, // Mantém o SM original
-                    selectedMembers
-                );
-
-                if (res.success) {
-                    // Atualiza localmente
-                    const index = projects.findIndex(p => p.id === idParaEditar);
-                    if (index !== -1) {
-                        projects[index] = res.data;
-                    }
-                    showFloatingAlert('Projeto atualizado com sucesso!');
-                    resetProjectFormState();
-                }
-
+            if (editingProjectId) {
+                await _salvarEdicaoProjeto(editingProjectId, name, desc, points, selectedMembers);
             } else {
-                // >>> MODO CRIAÇÃO <<<
-                res = await ProjectService.adicionarProjeto(
-                    name, 
-                    desc, 
-                    points, 
-                    null, // Novo projeto começa sem SM (definido na outra aba)
-                    selectedMembers
-                );
-                
-                if (res.success) {
-                    projects.push(res.data);
-                    showFloatingAlert('Projeto criado com sucesso!');
-                    this.reset();
-                    updateAllocationCheckboxes(); 
-                }
+                await _criarProjeto(name, desc, points, selectedMembers, this);
             }
-
-            // --- FINALIZAÇÃO ---
-            if (!res.success) {
-                showFloatingAlert('Erro: ' + res.error, 'error');
-            } else {
-                updateFullInterface();
-            }
-
         } catch (err) {
             console.error("Erro no processamento:", err);
             showFloatingAlert('Erro inesperado ao salvar projeto.', 'error');
         } finally {
-            // Restaura botão
-            if (typeof editingProjectId !== 'undefined' && editingProjectId) {
-                submitBtn.innerHTML = '<i class="fas fa-save"></i> Atualizar Projeto';
-            } else {
-                submitBtn.innerHTML = originalText || '<i class="fas fa-plus"></i> Criar Projeto';
-            }
+            submitBtn.innerHTML = editingProjectId
+                ? '<i class="fas fa-save"></i> Atualizar Projeto'
+                : originalText || '<i class="fas fa-plus"></i> Criar Projeto';
             submitBtn.disabled = false;
         }
     });
+}
+
+async function _criarProjeto(name, desc, points, selectedMembers, form) {
+    const res = await ProjectService.adicionarProjeto(name, desc, points, null, selectedMembers);
+    if (res.success) {
+        projects.push(res.data);
+        showFloatingAlert('Projeto criado com sucesso!');
+        form.reset();
+        updateFullInterface();
+    } else {
+        showFloatingAlert('Erro: ' + res.error, 'error');
+    }
+}
+
+async function _salvarEdicaoProjeto(id, name, desc, points, selectedMembers) {
+    const originalProject = projects.find(p => p.id === id);
+    const currentScrumMasterId = originalProject ? originalProject.scrum_master : null;
+
+    const res = await ProjectService.atualizarProjeto(id, name, desc, points, currentScrumMasterId, selectedMembers);
+    if (res.success) {
+        const index = projects.findIndex(p => p.id === id);
+        if (index !== -1) projects[index] = res.data;
+        showFloatingAlert('Projeto atualizado com sucesso!');
+        resetProjectFormState();
+        updateFullInterface();
+    } else {
+        showFloatingAlert('Erro: ' + res.error, 'error');
+    }
 }
 
 // REDENRIZAÇÃO
@@ -259,9 +220,13 @@ function editProject(id) {
 
 function resetProjectFormState() {
     editingProjectId = null;
-    
+
     const form = document.getElementById('projectForm');
-    if(form) form.reset();
+    if (form) {
+        form.reset();
+        const hiddenId = document.getElementById('projectId');
+        if (hiddenId) hiddenId.value = '';
+    }
 
     const submitBtn = document.querySelector('#projectForm button[type="submit"]');
     if(submitBtn) {
