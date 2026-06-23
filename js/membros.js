@@ -117,10 +117,10 @@ function buildOverloadTooltipHtml(memberId) {
     }
 
     const typeColors = {
-        project:  '#4361ee',
-        sm:       '#7209b7',
-        activity: '#f39c12',
-        test:     '#4cc9f0',
+        project:  '#043c73',
+        sm:       '#0787cb',
+        activity: '#fc9c14',
+        test:     '#5bb0e0',
     };
 
     const rows = lines.map(l => `
@@ -205,7 +205,7 @@ function renderMembers() {
     const sortedMembers = [...members].sort((a, b) => b.overload - a.overload);
 
     const subareaLabels = { ux_ui: 'UX/UI', frontend: 'Frontend', backend: 'Backend' };
-    const subareaColors = { ux_ui: '#7209b7', frontend: '#4361ee', backend: '#2ecc71' };
+    const subareaColors = { ux_ui: '#0a374e', frontend: '#0787cb', backend: '#fc9c14' };
 
     sortedMembers.forEach(member => {
         const overloadClass = getOverloadClassForMember(member.overload);

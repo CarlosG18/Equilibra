@@ -61,8 +61,8 @@ function renderTests() {
         }
 
         const statusBadge = t.status === 'em_andamento' 
-            ? '<span class="badge badge-active" style="background:#2ecc71; color:white; padding:4px 8px; border-radius:4px;">Em Andamento</span>' 
-            : '<span class="badge badge-done" style="background:#95a5a6; color:white; padding:4px 8px; border-radius:4px;">Concluído</span>';
+            ? '<span class="badge badge-active">Em Andamento</span>'
+            : '<span class="badge badge-done">Concluído</span>';
         
         // Botão de ação (Concluir ou Reabrir)
         const toggleBtn = t.status === 'em_andamento'

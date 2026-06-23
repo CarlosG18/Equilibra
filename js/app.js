@@ -251,14 +251,14 @@ function showFloatingAlert(message, type = 'success') {
     }
 
     let icon = 'fa-check-circle';
-    let color = 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)';
+    let color = 'linear-gradient(135deg, #0787cb 0%, #043c73 100%)';
 
     if (type === 'error') {
         icon = 'fa-times-circle';
-        color = 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)';
+        color = 'linear-gradient(135deg, #e23d28 0%, #b91c1c 100%)';
     } else if (type === 'warning') {
         icon = 'fa-exclamation-triangle';
-        color = 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)';
+        color = 'linear-gradient(135deg, #fc9c14 0%, #e0830a 100%)';
     }
 
     alertDiv.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;

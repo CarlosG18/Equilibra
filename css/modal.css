@@ -1,17 +1,20 @@
+/* ==========================================================================
+   Modais — overlay, caixa e botão de fechar (carregado após styles.css)
+   ========================================================================== */
+
 .modal-overlay {
     display: none;
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
+    inset: 0;
+    background: rgba(12, 15, 23, 0.5);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
     z-index: 2000;
     align-items: center;
     justify-content: center;
+    padding: 20px;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.25s ease;
 }
 
 .modal-overlay.active {
@@ -19,83 +22,82 @@
     opacity: 1;
 }
 
-/* Caixa do Modal */
+/* Caixa padrão (formulários) */
 .modal-content {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    width: 95%;
-    max-width: 600px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    background: var(--surface, #fff);
+    padding: 28px;
+    border-radius: var(--radius-lg, 16px);
+    width: 100%;
+    max-width: 560px;
+    box-shadow: var(--shadow-lg, 0 20px 50px rgba(18, 21, 28, 0.18));
     position: relative;
-    transform: translateY(-20px);
-    transition: transform 0.3s ease;
+    transform: translateY(14px) scale(0.985);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     max-height: 90vh;
     overflow-y: auto;
-    border-top: 5px solid var(--primary, #4361ee);
-    /* Detalhe visual */
+    border: 1px solid var(--line, #e6e8ee);
 }
 
 .modal-overlay.active .modal-content {
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
 }
 
-/* Botão Fechar (X) */
+.modal-content h2 {
+    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    color: var(--ink, #12151c);
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 22px;
+    padding-right: 36px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.modal-content h2 i {
+    color: var(--brand, #4f46e5);
+    font-size: 1rem;
+}
+
+/* Caixa de confirmação (usa .modal) */
+.modal {
+    background: var(--surface, #fff);
+    padding: 30px;
+    border-radius: var(--radius-lg, 16px);
+    width: 100%;
+    max-width: 420px;
+    box-shadow: var(--shadow-lg, 0 20px 50px rgba(18, 21, 28, 0.18));
+    border: 1px solid var(--line, #e6e8ee);
+    transform: translateY(14px) scale(0.985);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-overlay.active .modal {
+    transform: translateY(0) scale(1);
+}
+
+/* Botão fechar (X) */
 .btn-close-modal {
     position: absolute;
-    top: 15px;
-    right: 20px;
-    background: none;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    background: var(--canvas, #f5f6f8);
     border: none;
-    font-size: 1.5rem;
-    color: #999;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    line-height: 1;
+    color: var(--text-3, #8b91a1);
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .btn-close-modal:hover {
-    color: #e74c3c;
-}
-
-/* Área do Botão "Novo Item" */
-.header-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    border-bottom: 2px solid var(--gray-light);
-    padding-bottom: 20px;
-}
-
-/* Estilo do Botão Flutuante */
-.btn-add-floating {
-    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
-    transition: all 0.2s;
-}
-
-.btn-add-floating:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(67, 97, 238, 0.4);
-}
-
-/* Variações de cor para os botões */
-.btn-add-test {
-    background: linear-gradient(135deg, #ff9f1c 0%, #ff7b00 100%);
-}
-
-.btn-add-activity {
-    background: linear-gradient(135deg, #f72585 0%, #b5179e 100%);
-}
-
-.btn-add-scrum {
-    background: linear-gradient(135deg, #7209b7 0%, #560bad 100%);
+    background: var(--danger-bg, #fcecec);
+    color: var(--danger, #dc2626);
+    transform: rotate(90deg);
 }
