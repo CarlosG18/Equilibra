@@ -1,3 +1,50 @@
+// ALOCAÇÃO INTELIGENTE
+
+function renderSmartAllocationCheckboxes(selectedIds = []) {
+    const container = document.getElementById('membersAllocation');
+    if (!container) return;
+
+    container.innerHTML = '';
+    container.classList.add('checkbox-group');
+
+    if (members.length === 0) {
+        container.innerHTML = '<p style="color:#666; font-style:italic">Nenhum membro cadastrado.</p>';
+        return;
+    }
+
+    const sorted = [...members].sort((a, b) => (a.overload || 0) - (b.overload || 0));
+
+    const rankIcons = ['🥇', '🥈', '🥉'];
+
+    sorted.forEach((member, index) => {
+        const overload = member.overload || 0;
+        const overloadClass = getOverloadClassForMember(overload);
+        const isChecked = selectedIds.includes(member.id) ? 'checked' : '';
+        const rankIcon = index < 3 ? `<span class="smart-rank-icon">${rankIcons[index]}</span>` : '';
+
+        const label = document.createElement('label');
+        label.className = 'checkbox-label smart-allocation-label';
+        label.setAttribute('data-overload', overload);
+        label.innerHTML = `
+            <input type="checkbox" name="projectMembers" value="${member.id}" ${isChecked}>
+            <div class="smart-member-info">
+                <div class="smart-member-name">
+                    ${rankIcon}
+                    <span>${member.name}</span>
+                    <small class="smart-member-role">${member.role}</small>
+                </div>
+                <span class="overload-indicator ${overloadClass} smart-overload-badge">${overload} pts</span>
+            </div>
+        `;
+        container.appendChild(label);
+    });
+
+    const header = document.createElement('div');
+    header.className = 'smart-allocation-header';
+    header.innerHTML = '<i class="fas fa-sort-amount-up"></i> Ordenado por menor sobrecarga (ranking inteligente)';
+    container.insertBefore(header, container.firstChild);
+}
+
 // FORMS
 
 // --- LISTENER DO FORMULÁRIO DE PROJETO (CRIAR E EDITAR) ---
@@ -185,18 +232,9 @@ function editProject(id) {
         smSelect.value = project.scrum_master || ""; // Seleciona o ID ou vazio
     }
 
-    // 3. Preencher Membros Alocados (Checkboxes)
-    // Primeiro, garante que os checkboxes existem
-    updateAllocationCheckboxes(); 
-    
-    // Depois, marca os que estão no projeto
+    // 3. Preencher Membros Alocados (Checkboxes) com ranking inteligente
     const allocatedIDs = project.allocated_members || [];
-    const checkboxes = document.querySelectorAll('input[name="projectMembers"]');
-    
-    checkboxes.forEach(cb => {
-        // Se o valor do checkbox (ID do membro) estiver no array do projeto, marca ele
-        cb.checked = allocatedIDs.includes(cb.value);
-    });
+    renderSmartAllocationCheckboxes(allocatedIDs);
 
     // 4. Alterar estado da UI para "Modo Edição"
     editingProjectId = id; // Variável global de controle
@@ -237,9 +275,8 @@ function resetProjectFormState() {
 
     const cancelBtn = document.getElementById('projectCancelBtn');
     if(cancelBtn) cancelBtn.style.display = 'none';
-    
-    // Reseta checkboxes visualmente
-    updateAllocationCheckboxes();
+
+    renderSmartAllocationCheckboxes([]);
 }
 
 // Ligar o botão cancelar (adicione no setupCancelButtons ou no DOMContentLoaded)
