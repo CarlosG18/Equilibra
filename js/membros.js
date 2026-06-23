@@ -10,6 +10,7 @@ if (memberForm) {
         // 1. COLETAR DADOS
         const name = document.getElementById('memberName').value;
         const role = document.getElementById('memberRole').value;
+        const subarea = document.getElementById('memberSubarea').value;
         //const email = document.getElementById('memberEmail').value;
 
         // 2. FEEDBACK VISUAL
@@ -24,7 +25,7 @@ if (memberForm) {
             // --- DECISÃO: CRIAR OU ATUALIZAR? ---
             if (editingMemberId) {
                 // >>> MODO EDIÇÃO <<<
-                res = await ProjectService.atualizarMembro(editingMemberId, name, role);
+                res = await ProjectService.atualizarMembro(editingMemberId, name, role, subarea);
 
                 if (res.success) {
                     // Atualiza o membro no array local
@@ -38,7 +39,7 @@ if (memberForm) {
 
             } else {
                 // >>> MODO CRIAÇÃO <<<
-                res = await ProjectService.adicionarMembro(name, role);
+                res = await ProjectService.adicionarMembro(name, role, subarea);
 
                 if (res.success) {
                     members.push(res.data);
@@ -203,15 +204,29 @@ function renderMembers() {
 
     const sortedMembers = [...members].sort((a, b) => b.overload - a.overload);
 
+    const subareaLabels = { ux_ui: 'UX/UI', frontend: 'Frontend', backend: 'Backend' };
+    const subareaColors = { ux_ui: '#7209b7', frontend: '#4361ee', backend: '#2ecc71' };
+
     sortedMembers.forEach(member => {
         const overloadClass = getOverloadClassForMember(member.overload);
+        const subareaKey = member.subarea || '';
+        const subareaTag = subareaKey
+            ? `<span class="member-subarea-tag" style="background:${subareaColors[subareaKey]}20;color:${subareaColors[subareaKey]};border:1px solid ${subareaColors[subareaKey]}55">
+                   ${subareaLabels[subareaKey]}
+               </span>`
+            : '';
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>
                 <strong>${member.name}</strong>
             </td>
-            <td>${member.role}</td>
+            <td>
+                <div style="display:flex;flex-direction:column;gap:4px">
+                    <span>${member.role}</span>
+                    ${subareaTag}
+                </div>
+            </td>
             <td>
                 <div class="overload-tooltip-wrapper" data-member-id="${member.id}">
                     <span class="overload-indicator ${overloadClass}">
@@ -257,9 +272,10 @@ function editMember(id) {
     if (!member) return;
 
     // 1. Preencher formulário com dados do membro
-    document.getElementById('memberId').value = member.id; // Se houver campo hidden
+    document.getElementById('memberId').value = member.id;
     document.getElementById('memberName').value = member.name;
     document.getElementById('memberRole').value = member.role;
+    document.getElementById('memberSubarea').value = member.subarea || '';
     //document.getElementById('memberEmail').value = member.email;
 
     // 2. Alterar estado visual para edição

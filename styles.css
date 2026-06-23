@@ -906,6 +906,16 @@ height: 20px;
 accent-color: var(--primary);
 }
 
+/* Tag de subárea do membro */
+.member-subarea-tag {
+display: inline-block;
+font-size: 0.72em;
+font-weight: 600;
+padding: 2px 8px;
+border-radius: 20px;
+letter-spacing: 0.02em;
+}
+
 /* Alocação Inteligente */
 .smart-allocation-header {
 grid-column: 1 / -1;
@@ -917,6 +927,33 @@ padding: 6px 12px;
 display: flex;
 align-items: center;
 gap: 6px;
+}
+
+.smart-subarea-header {
+grid-column: 1 / -1;
+display: flex;
+align-items: center;
+gap: 8px;
+font-size: 0.8em;
+font-weight: 700;
+color: var(--subarea-color, var(--gray));
+margin-top: 8px;
+padding: 5px 10px;
+border-left: 3px solid var(--subarea-color, var(--gray));
+background: color-mix(in srgb, var(--subarea-color, #6c757d) 8%, transparent);
+border-radius: 0 6px 6px 0;
+letter-spacing: 0.03em;
+text-transform: uppercase;
+}
+
+.smart-subarea-count {
+margin-left: auto;
+background: var(--subarea-color, var(--gray));
+color: #fff;
+border-radius: 20px;
+padding: 1px 7px;
+font-size: 0.85em;
+font-weight: 600;
 }
 
 .smart-allocation-label {

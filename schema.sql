@@ -12,9 +12,13 @@ CREATE TABLE members (
     id          UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
     name        VARCHAR(255) NOT NULL,
     role        VARCHAR(255) NOT NULL,
+    subarea     VARCHAR(50),  -- 'ux_ui' | 'frontend' | 'backend' | NULL
     email       VARCHAR(255),
     created_at  TIMESTAMP   DEFAULT NOW()
 );
+
+-- Migração (execute se a tabela já existir):
+-- ALTER TABLE members ADD COLUMN IF NOT EXISTS subarea VARCHAR(50);
 
 -- ==========================================
 -- TABELA: projects

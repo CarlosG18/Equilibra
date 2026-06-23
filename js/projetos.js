@@ -12,37 +12,56 @@ function renderSmartAllocationCheckboxes(selectedIds = []) {
         return;
     }
 
-    const sorted = [...members].sort((a, b) => (a.overload || 0) - (b.overload || 0));
+    const subareaConfig = [
+        { key: 'ux_ui',    label: 'UX/UI',    icon: 'fa-paint-brush', color: '#7209b7' },
+        { key: 'frontend', label: 'Frontend',  icon: 'fa-laptop-code', color: '#4361ee' },
+        { key: 'backend',  label: 'Backend',   icon: 'fa-server',      color: '#2ecc71' },
+        { key: '',         label: 'Sem subárea', icon: 'fa-user',       color: '#6c757d' },
+    ];
 
     const rankIcons = ['🥇', '🥈', '🥉'];
-
-    sorted.forEach((member, index) => {
-        const overload = member.overload || 0;
-        const overloadClass = getOverloadClassForMember(overload);
-        const isChecked = selectedIds.includes(member.id) ? 'checked' : '';
-        const rankIcon = index < 3 ? `<span class="smart-rank-icon">${rankIcons[index]}</span>` : '';
-
-        const label = document.createElement('label');
-        label.className = 'checkbox-label smart-allocation-label';
-        label.setAttribute('data-overload', overload);
-        label.innerHTML = `
-            <input type="checkbox" name="projectMembers" value="${member.id}" ${isChecked}>
-            <div class="smart-member-info">
-                <div class="smart-member-name">
-                    ${rankIcon}
-                    <span>${member.name}</span>
-                    <small class="smart-member-role">${member.role}</small>
-                </div>
-                <span class="overload-indicator ${overloadClass} smart-overload-badge">${overload} pts</span>
-            </div>
-        `;
-        container.appendChild(label);
-    });
 
     const header = document.createElement('div');
     header.className = 'smart-allocation-header';
     header.innerHTML = '<i class="fas fa-sort-amount-up"></i> Ordenado por menor sobrecarga (ranking inteligente)';
-    container.insertBefore(header, container.firstChild);
+    container.appendChild(header);
+
+    subareaConfig.forEach(({ key, label, icon, color }) => {
+        const group = members
+            .filter(m => (m.subarea || '') === key)
+            .sort((a, b) => (a.overload || 0) - (b.overload || 0));
+
+        if (group.length === 0) return;
+
+        const groupHeader = document.createElement('div');
+        groupHeader.className = 'smart-subarea-header';
+        groupHeader.style.setProperty('--subarea-color', color);
+        groupHeader.innerHTML = `<i class="fas ${icon}"></i> ${label} <span class="smart-subarea-count">${group.length}</span>`;
+        container.appendChild(groupHeader);
+
+        group.forEach((member, index) => {
+            const overload = member.overload || 0;
+            const overloadClass = getOverloadClassForMember(overload);
+            const isChecked = selectedIds.includes(member.id) ? 'checked' : '';
+            const rankIcon = index < 3 ? `<span class="smart-rank-icon">${rankIcons[index]}</span>` : '';
+
+            const label = document.createElement('label');
+            label.className = 'checkbox-label smart-allocation-label';
+            label.setAttribute('data-overload', overload);
+            label.innerHTML = `
+                <input type="checkbox" name="projectMembers" value="${member.id}" ${isChecked}>
+                <div class="smart-member-info">
+                    <div class="smart-member-name">
+                        ${rankIcon}
+                        <span>${member.name}</span>
+                        <small class="smart-member-role">${member.role}</small>
+                    </div>
+                    <span class="overload-indicator ${overloadClass} smart-overload-badge">${overload} pts</span>
+                </div>
+            `;
+            container.appendChild(label);
+        });
+    });
 }
 
 // FORMS
