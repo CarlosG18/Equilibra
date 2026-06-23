@@ -76,20 +76,20 @@ const ProjectService = {
     // --- 2. CRUD DE MEMBROS ---
     // ==========================================
 
-    async adicionarMembro(name, role) {
+    async adicionarMembro(name, role, subarea) {
         const { data, error } = await _supabase
             .from('members')
-            .insert([{ name, role }])
+            .insert([{ name, role, subarea: subarea || null }])
             .select();
 
         if (error) return { success: false, error: error.message };
         return { success: true, data: data[0] };
     },
 
-    async atualizarMembro(id, name, role) {
+    async atualizarMembro(id, name, role, subarea) {
         const { data, error } = await _supabase
             .from('members')
-            .update({ name, role })
+            .update({ name, role, subarea: subarea || null })
             .eq('id', id)
             .select();
 
