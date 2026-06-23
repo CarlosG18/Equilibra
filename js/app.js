@@ -59,7 +59,11 @@ function updateFullInterface() {
     calculateOverload(); // Recalcula os pontos baseados nos dados novos
     renderMembers();
     renderProjects();
-    updateAllocationCheckboxes();
+    if (typeof renderSmartAllocationCheckboxes === 'function') {
+        renderSmartAllocationCheckboxes([]);
+    } else {
+        updateAllocationCheckboxes();
+    }
     updateScrumManagementSelects();
     updateActivityAllocationCheckboxes(); // Para selecionar o membro na aba atividades
     renderActivitiesSummary();
