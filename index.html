@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="styles.css">
@@ -17,361 +17,409 @@
 </head>
 
 <body>
-    <div id="login-screen"
-        style="display: flex; min-height: 100vh; align-items: center; justify-content: center; padding: 24px;">
+    <!-- ============================ LOGIN ============================ -->
+    <div id="login-screen" class="login-screen">
         <div class="login-card">
-            <div class="logo-container">
-                <img src="assets/logo.svg" alt="Equilibra" class="logo">
-            </div>
+            <img src="assets/logo.svg" alt="Equilibra" class="login-logo">
             <p class="login-subtitle">Gestão de capacidade e alocação para times ágeis</p>
 
-            <div class="login-field">
-                <label for="emailInput"><i class="fas fa-envelope"></i> Email</label>
-                <input type="email" id="emailInput" class="form-control" placeholder="admin@exemplo.com">
+            <div class="field">
+                <label for="emailInput">Email</label>
+                <input type="email" id="emailInput" class="form-control" placeholder="voce@ejectufrn.com.br"
+                    autocomplete="username">
             </div>
 
-            <div class="login-field" style="margin-bottom: 24px;">
-                <label for="passwordInput"><i class="fas fa-lock"></i> Senha</label>
-                <input type="password" id="passwordInput" class="form-control" placeholder="••••••••">
+            <div class="field">
+                <label for="passwordInput">Senha</label>
+                <input type="password" id="passwordInput" class="form-control" placeholder="••••••••"
+                    autocomplete="current-password">
             </div>
 
-            <button onclick="handleLogin()" class="btn btn-primary" style="width: 100%;">
-                <i class="fas fa-right-to-bracket"></i> Entrar
+            <button onclick="handleLogin()" class="btn btn-primary btn-block">
+                Entrar
             </button>
-            <p id="loginError" style="color: var(--danger); margin-top: 14px; font-size: 0.9em; display: none;"></p>
+            <p id="loginError" class="login-error"></p>
+        </div>
+        <div class="login-foot">
+            <span>Produto do</span>
+            <img src="assets/eject_labs_logo.svg" alt="EJECT LABS" class="eject-logo">
         </div>
     </div>
 
+    <!-- ============================ APP ============================ -->
     <div id="app-content" style="display: none;">
-        <div class="top-bar">
-            <div class="top-bar-brand">
-                <span class="avatar"><i class="fas fa-user"></i></span>
-                <h3>Olá, Ejecter!</h3>
+        <div class="app-shell">
+
+            <!-- ---------- Sidebar ---------- -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-brand">
+                    <span class="brand-symbol" aria-hidden="true"></span>
+                    <span class="sidebar-brand-name">Equilibra</span>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <div class="nav-group">
+                        <span class="nav-group-label">Geral</span>
+                        <button class="tab-button nav-item active" data-tab="dashboard" data-title="Dashboard">
+                            <i class="fas fa-gauge-high"></i><span>Dashboard</span>
+                        </button>
+                    </div>
+
+                    <div class="nav-group">
+                        <span class="nav-group-label">Gestão</span>
+                        <button class="tab-button nav-item" data-tab="members" data-title="Membros">
+                            <i class="fas fa-users"></i><span>Membros</span>
+                        </button>
+                        <button class="tab-button nav-item" data-tab="projects" data-title="Projetos">
+                            <i class="fas fa-diagram-project"></i><span>Projetos</span>
+                        </button>
+                        <button class="tab-button nav-item" data-tab="tests" data-title="Testes">
+                            <i class="fas fa-vial"></i><span>Testes</span>
+                        </button>
+                        <button class="tab-button nav-item" data-tab="scrum" data-title="Scrum Masters">
+                            <i class="fas fa-user-shield"></i><span>Scrum Masters</span>
+                        </button>
+                        <button class="tab-button nav-item" data-tab="activities" data-title="Atividades Extras">
+                            <i class="fas fa-list-check"></i><span>Atividades Extras</span>
+                        </button>
+                    </div>
+                </nav>
+
+                <div class="sidebar-foot">
+                    <div class="sidebar-user">
+                        <span class="avatar"><i class="fas fa-user"></i></span>
+                        <div class="sidebar-user-info">
+                            <strong>Ejecter</strong>
+                            <small>Equipe EJECT</small>
+                        </div>
+                    </div>
+                    <button onclick="handleLogout()" class="icon-btn" title="Sair" aria-label="Sair">
+                        <i class="fas fa-arrow-right-from-bracket"></i>
+                    </button>
+                </div>
+            </aside>
+            <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+            <!-- ---------- Main ---------- -->
+            <div class="main">
+                <header class="topbar">
+                    <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Abrir menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="topbar-heading">
+                        <nav class="breadcrumb" aria-label="Você está em">
+                            <span>Equilibra</span>
+                            <i class="fas fa-chevron-right"></i>
+                            <span id="crumbCurrent" class="breadcrumb-current">Dashboard</span>
+                        </nav>
+                        <h1 class="page-title" id="pageTitle">Dashboard</h1>
+                    </div>
+                    <div class="topbar-actions">
+                        <button id="btn-refresh" class="btn-ghost" onclick="handleManualRefresh()">
+                            <svg class="icon-refresh" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M23 4v6h-6"></path>
+                                <path d="M1 20v-6h6"></path>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                            <span>Atualizar</span>
+                        </button>
+                        <div class="user-menu" id="userMenu">
+                            <button class="user-trigger" id="userTrigger" aria-haspopup="true" aria-expanded="false">
+                                <span class="avatar avatar-sm"><i class="fas fa-user"></i></span>
+                                <i class="fas fa-chevron-down caret"></i>
+                            </button>
+                            <div class="dropdown" id="userDropdown" role="menu">
+                                <div class="dropdown-header">
+                                    <strong>Olá, Ejecter!</strong>
+                                    <small>Equipe EJECT</small>
+                                </div>
+                                <button class="dropdown-item dropdown-item-danger" onclick="handleLogout()" role="menuitem">
+                                    <i class="fas fa-arrow-right-from-bracket"></i> Sair
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <main class="page">
+
+                    <!-- ==================== Dashboard ==================== -->
+                    <section id="dashboard" class="tab-content active">
+                        <div class="kpi-grid">
+                            <div class="stat-card total-members">
+                                <span class="stat-icon"><i class="fas fa-users"></i></span>
+                                <div class="stat-body">
+                                    <div class="stat-value" id="totalMembers">0</div>
+                                    <div class="stat-label">Membros</div>
+                                </div>
+                            </div>
+                            <div class="stat-card total-projects">
+                                <span class="stat-icon"><i class="fas fa-diagram-project"></i></span>
+                                <div class="stat-body">
+                                    <div class="stat-value" id="totalProjects">0</div>
+                                    <div class="stat-label">Projetos ativos</div>
+                                </div>
+                            </div>
+                            <div class="stat-card avg-overload">
+                                <span class="stat-icon"><i class="fas fa-gauge"></i></span>
+                                <div class="stat-body">
+                                    <div class="stat-value" id="avgOverload">0</div>
+                                    <div class="stat-label">Sobrecarga média</div>
+                                </div>
+                            </div>
+                            <div class="stat-card high-overload">
+                                <span class="stat-icon"><i class="fas fa-fire"></i></span>
+                                <div class="stat-body">
+                                    <div class="stat-value" id="highOverloadCount">0</div>
+                                    <div class="stat-label">Sobrecarregados</div>
+                                </div>
+                            </div>
+                            <div class="stat-card available">
+                                <span class="stat-icon"><i class="fas fa-circle-check"></i></span>
+                                <div class="stat-body">
+                                    <div class="stat-value" id="availableMembers">0</div>
+                                    <div class="stat-label">Disponíveis</div>
+                                </div>
+                            </div>
+                            <div class="stat-card scrum-masters">
+                                <span class="stat-icon"><i class="fas fa-user-shield"></i></span>
+                                <div class="stat-body">
+                                    <div class="stat-value" id="scrumMastersCount">0</div>
+                                    <div class="stat-label">Scrum Masters</div>
+                                </div>
+                            </div>
+                            <div class="stat-card extra-activities">
+                                <span class="stat-icon"><i class="fas fa-list-check"></i></span>
+                                <div class="stat-body">
+                                    <div class="stat-value" id="activitiesCount">0</div>
+                                    <div class="stat-label">Atividades extras</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-grid">
+                            <div class="card chart-card">
+                                <h2><i class="fas fa-chart-pie"></i> Análise de sobrecarga</h2>
+                                <div class="chart-layout">
+                                    <div class="chart-canvas-wrap">
+                                        <canvas id="overloadChart"></canvas>
+                                    </div>
+                                    <div id="overloadTextSummary" class="chart-summary"></div>
+                                </div>
+                            </div>
+
+                            <div class="dashboard-side">
+                                <div class="dashboard-card">
+                                    <h3><i class="fas fa-user-check"></i> Mais disponíveis</h3>
+                                    <div id="mostAvailableMembers" class="mini-list"></div>
+                                </div>
+
+                                <div class="dashboard-card">
+                                    <h3><i class="fas fa-triangle-exclamation"></i> Estado de alerta</h3>
+                                    <div id="alertMembers" class="mini-list"></div>
+                                </div>
+
+                                <div class="dashboard-card scrum-card">
+                                    <h3><i class="fas fa-user-shield"></i> Scrum Masters</h3>
+                                    <div id="scrumMastersList" class="mini-list"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h2><i class="fas fa-list-ol"></i> Membros e suas cargas</h2>
+                            <div class="table-container">
+                                <table id="membersWorkloadTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Membro</th>
+                                            <th>Projetos</th>
+                                            <th>Atividades</th>
+                                            <th>Sobrecarga</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="membersWorkloadList"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ==================== Membros ==================== -->
+                    <section id="members" class="tab-content">
+                        <div class="header-actions">
+                            <div class="header-actions-text">
+                                <h2><i class="fas fa-users"></i> Equipe</h2>
+                                <p>Cadastre e gerencie os membros do time.</p>
+                            </div>
+                            <button class="btn-add-floating" onclick="openModal('modalMember')">
+                                <i class="fas fa-plus"></i> Novo membro
+                            </button>
+                        </div>
+                        <div class="card card-flush">
+                            <div class="table-container">
+                                <table id="membersTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Nome</th>
+                                            <th>Cargo</th>
+                                            <th>Sobrecarga</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="membersList"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ==================== Projetos ==================== -->
+                    <section id="projects" class="tab-content">
+                        <div class="header-actions">
+                            <div class="header-actions-text">
+                                <h2><i class="fas fa-diagram-project"></i> Projetos</h2>
+                                <p>Defina pesos e aloque o time em cada projeto.</p>
+                            </div>
+                            <button class="btn-add-floating" onclick="openModal('modalProject')">
+                                <i class="fas fa-plus"></i> Novo projeto
+                            </button>
+                        </div>
+                        <div class="card card-flush">
+                            <div class="table-container">
+                                <table id="projectsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Projeto</th>
+                                            <th>Pontos</th>
+                                            <th>Scrum Master</th>
+                                            <th>Membros alocados</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="projectsList"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ==================== Testes ==================== -->
+                    <section id="tests" class="tab-content">
+                        <div class="header-actions">
+                            <div class="header-actions-text">
+                                <h2><i class="fas fa-vial"></i> Testes</h2>
+                                <p>Ciclos de teste que geram carga para o time.</p>
+                            </div>
+                            <button class="btn-add-floating btn-add-test" onclick="openModal('modalTest')">
+                                <i class="fas fa-plus"></i> Novo teste
+                            </button>
+                        </div>
+                        <div class="card card-flush">
+                            <div class="table-container">
+                                <table id="testsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Teste</th>
+                                            <th>Projeto</th>
+                                            <th>Membros alocados</th>
+                                            <th>Carga</th>
+                                            <th>Status</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="testsList"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ==================== Scrum Masters ==================== -->
+                    <section id="scrum" class="tab-content">
+                        <div class="header-actions">
+                            <div class="header-actions-text">
+                                <h2><i class="fas fa-user-shield"></i> Scrum Masters</h2>
+                                <p>Quem lidera cada projeto e a carga dessa função.</p>
+                            </div>
+                            <button class="btn-add-floating btn-add-scrum" onclick="openModal('modalScrum')">
+                                <i class="fas fa-crown"></i> Definir Scrum Master
+                            </button>
+                        </div>
+                        <div class="card card-flush">
+                            <div class="table-container">
+                                <table id="scrumTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Projeto</th>
+                                            <th>Scrum Master</th>
+                                            <th>E-mail</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="scrumList"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ==================== Atividades Extras ==================== -->
+                    <section id="activities" class="tab-content">
+                        <div class="header-actions">
+                            <div class="header-actions-text">
+                                <h2><i class="fas fa-list-check"></i> Atividades extras</h2>
+                                <p>Cargas que costumam ficar invisíveis: GTs, mentorias, suporte.</p>
+                            </div>
+                            <button class="btn-add-floating btn-add-activity" onclick="openModal('modalActivity')">
+                                <i class="fas fa-plus"></i> Nova atividade
+                            </button>
+                        </div>
+                        <div class="card card-flush">
+                            <div class="table-container">
+                                <table id="activitiesTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Atividade</th>
+                                            <th>Membro</th>
+                                            <th>Pontos</th>
+                                            <th>Status</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="activitiesList"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h2><i class="fas fa-chart-pie"></i> Atividades por membro</h2>
+                            <div id="activitiesSummary"></div>
+                        </div>
+                    </section>
+
+                    <footer class="app-footer">
+                        <img src="assets/eject_labs_logo.svg" alt="EJECT LABS" class="eject-logo eject-logo-footer">
+                        <p>Equilibra — Sistema de gerenciamento de sobrecarga de projetos &copy; 2025</p>
+                        <p>Desenvolvido pela EJECT</p>
+                    </footer>
+                </main>
             </div>
-            <button onclick="handleLogout()" class="btn btn-danger btn-small">
-                <i class="fas fa-sign-out-alt"></i> Sair
-            </button>
         </div>
 
-        <div class="container">
-            <header>
-                <div class="logo-container">
-                    <img src="assets/logo.svg" alt="Equilibra" class="logo">
-                </div>
-                <p>Gerencie a alocação e a sobrecarga dos membros do seu time em diferentes projetos</p>
-            </header>
+        <!-- ============================ MODAIS ============================ -->
 
-            <div class="tab-navigation">
-                <div class="tab-indicator" id="tabIndicator"></div>
-                <button class="tab-button active" data-tab="dashboard">
-                    <i class="fas fa-chart-line"></i> Dashboard
-                </button>
-                <button class="tab-button" data-tab="members">
-                    <i class="fas fa-users"></i> Membros
-                </button>
-                <button class="tab-button" data-tab="projects">
-                    <i class="fas fa-project-diagram"></i> Projetos
-                </button>
-                <button class="tab-button" data-tab="tests">
-                    <i class="fas fa-vial"></i> Testes
-                </button>
-                <button class="tab-button" data-tab="scrum">
-                    <i class="fas fa-user-shield"></i> Scrum Masters
-                </button>
-                <button class="tab-button" data-tab="activities">
-                    <i class="fas fa-list-check"></i> Atividades Extras
-                </button>
-            </div>
-
-            <!-- Dashboard Tab -->
-            <div id="dashboard" class="tab-content active">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle fa-lg"></i>
-                    <div>Dashboard com informações sobre a sobrecarga da equipe, membros disponíveis, scrum masters e
-                        atividades extras.</div>
-                    <button id="btn-refresh" class="btn-vermelho" onclick="handleManualRefresh()">
-                        <span>Atualizar Dados</span>
-                        <svg class="icon-refresh" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M23 4v6h-6"></path>
-                            <path d="M1 20v-6h6"></path>
-                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                        </svg>
-                    </button>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stat-card total-members">
-                        <div class="stat-value" id="totalMembers">0</div>
-                        <div class="stat-label">Membros Cadastrados</div>
-                    </div>
-                    <div class="stat-card total-projects">
-                        <div class="stat-value" id="totalProjects">0</div>
-                        <div class="stat-label">Projetos Ativos</div>
-                    </div>
-                    <div class="stat-card avg-overload">
-                        <div class="stat-value" id="avgOverload">0</div>
-                        <div class="stat-label">Sobrecarga Média</div>
-                    </div>
-                    <div class="stat-card high-overload">
-                        <div class="stat-value" id="highOverloadCount">0</div>
-                        <div class="stat-label">Membros Sobrecarregados</div>
-                    </div>
-                    <div class="stat-card available">
-                        <div class="stat-value" id="availableMembers">0</div>
-                        <div class="stat-label">Membros Disponíveis</div>
-                    </div>
-                    <div class="stat-card scrum-masters">
-                        <div class="stat-value" id="scrumMastersCount">0</div>
-                        <div class="stat-label">Scrum Masters</div>
-                    </div>
-                    <div class="stat-card extra-activities">
-                        <div class="stat-value" id="activitiesCount">0</div>
-                        <div class="stat-label">Atividades Extras</div>
-                    </div>
-                </div>
-
-                <div class="dashboard-grid">
-                    <div class="dashboard-card">
-                        <h3><i class="fas fa-user-check"></i> Pessoal Mais Disponível</h3>
-                        <div id="mostAvailableMembers">
-                            <!-- Lista de membros mais disponíveis -->
-                        </div>
-                    </div>
-
-                    <div class="dashboard-card">
-                        <h3><i class="fas fa-exclamation-triangle"></i> Estado de Alerta</h3>
-                        <div id="alertMembers">
-                            <!-- Lista de membros em alerta -->
-                        </div>
-                    </div>
-
-                    <div class="dashboard-card scrum-card">
-                        <h3><i class="fas fa-user-shield"></i> Scrum Masters</h3>
-                        <div id="scrumMastersList">
-                            <!-- Lista de scrum masters -->
-                        </div>
-                    </div>
-
-                    <!--
-                <div class="dashboard-card activities-card">
-                    <h3><i class="fas fa-list-check"></i> Atividades Extras Ativas</h3>
-                    <div id="activeActivitiesList">
-
-                    </div>
-                </div>
-                -->
-                </div>
-
-                <div class="card">
-                    <h2><i class="fas fa-chart-pie"></i> Análise de Sobrecarga</h2>
-                    <div
-                        style="display: flex; gap: 20px; align-items: center; justify-content: space-around; flex-wrap: wrap;">
-                        <div style="width: 300px; height: 300px;">
-                            <canvas id="overloadChart"></canvas>
-                        </div>
-                        <div id="overloadTextSummary" style="max-width: 400px;">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h2><i class="fas fa-list-ol"></i> Lista de Membros e Suas Cargas</h2>
-                    <div class="table-container">
-                        <table id="membersWorkloadTable">
-                            <thead>
-                                <tr>
-                                    <th>Membro</th>
-                                    <th>Projetos</th>
-                                    <th>Atividades</th>
-                                    <th>Sobrecarga</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="membersWorkloadList">
-                                <!-- Lista de membros com suas cargas -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Members Tab -->
-            <div id="members" class="tab-content">
-                <div class="header-actions">
-                    <h2><i class="fas fa-users"></i> Membros Cadastrados</h2>
-                    <button class="btn-add-floating" onclick="openModal('modalMember')">
-                        <i class="fas fa-plus"></i> Novo Membro
-                    </button>
-                </div>
-                <div class="card">
-
-                    <div class="table-container">
-                        <table id="membersTable">
-                            <thead>
-                                <tr>
-                                    <th>Nome</th>
-                                    <th>Cargo</th>
-                                    <th>Sobrecarga</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="membersList">
-                                <!-- Membros serão inseridos aqui via JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Projects Tab -->
-            <div id="projects" class="tab-content">
-
-                <div class="header-actions">
-                    <h2><i class="fas fa-project-diagram"></i> Projetos Cadastrados</h2>
-                    <button class="btn-add-floating" onclick="openModal('modalProject')">
-                        <i class="fas fa-plus"></i> Novo Projeto
-                    </button>
-                </div>
-
-                <div class="card">
-                    <div class="table-container">
-                        <table id="projectsTable">
-                            <thead>
-                                <tr>
-                                    <th>Projeto</th>
-                                    <th>Pontos</th>
-                                    <th>Scrum Master</th>
-                                    <th>Membros Alocados</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="projectsList">
-                                <!-- Projetos serão inseridos aqui via JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- testes tab -->
-            <div id="tests" class="tab-content">
-
-                <div class="header-actions">
-                    <h2><i class="fas fa-vial"></i> Testes</h2>
-                    <button class="btn-add-floating btn-add-test" onclick="openModal('modalTest')">
-                        <i class="fas fa-plus"></i> Novo Teste
-                    </button>
-                </div>
-
-                <div class="card">
-                    <div class="table-container">
-                        <table id="testsTable">
-                            <thead>
-                                <tr>
-                                    <th>Teste</th>
-                                    <th>Projeto</th>
-                                    <th>Membros Alocados</th>
-                                    <th>Carga</th>
-                                    <th>Status</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="testsList">
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Scrum Masters Tab -->
-            <div id="scrum" class="tab-content">
-
-                <div class="header-actions">
-                    <h2><i class="fas fa-list-check"></i> Scrum Masters Definidos</h2>
-                    <button class="btn-add-floating btn-add-scrum" onclick="openModal('modalScrum')">
-                        <i class="fas fa-crown"></i> Definir Scrum Master
-                    </button>
-                </div>
-
-                <div class="card">
-                    <div class="table-container">
-                        <table id="scrumTable">
-                            <thead>
-                                <tr>
-                                    <th>Projeto</th>
-                                    <th>Scrum Master</th>
-                                    <th>E-mail</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="scrumList">
-                                <!-- Scrum masters serão inseridos aqui via JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Activities Tab -->
-            <div id="activities" class="tab-content">
-
-                <div class="header-actions">
-                    <h2><i class="fas fa-list-check"></i> Atividades Extras</h2>
-                    <button class="btn-add-floating btn-add-activity" onclick="openModal('modalActivity')">
-                        <i class="fas fa-plus"></i> Nova Atividade
-                    </button>
-                </div>
-
-                <div class="card">
-                    <div class="table-container">
-                        <table id="activitiesTable">
-                            <thead>
-                                <tr>
-                                    <th>Atividade</th>
-                                    <th>Membro</th>
-                                    <th>Pontos</th>
-                                    <th>Status</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="activitiesList">
-                                <!-- Atividades serão inseridas aqui via JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h2><i class="fas fa-chart-pie"></i> Atividades por Membro</h2>
-                    <div id="activitiesSummary">
-                        <!-- Resumo de atividades por membro -->
-                    </div>
-                </div>
-            </div>
-
-            <footer>
-                <p>EQUILIBRA - Sistema de Gerenciamento de Sobrecarga de Projetos &copy; 2025</p>
-                <p>Desenvolvido pela EJECT</p>
-            </footer>
-        </div>
-
-        <!-- modais -->
-
-        <!-- modal de criação de membro -->
+        <!-- Novo membro -->
         <div id="modalMember" class="modal-overlay">
             <div class="modal-content">
-                <button class="btn-close-modal" onclick="closeModal('modalMember')">&times;</button>
-                <h2><i class="fas fa-user-plus"></i> Cadastrar Novo Membro</h2>
+                <button class="btn-close-modal" onclick="closeModal('modalMember')" aria-label="Fechar">&times;</button>
+                <h2><i class="fas fa-user-plus"></i> Cadastrar novo membro</h2>
                 <form id="memberForm">
                     <input type="hidden" id="memberId" value="">
                     <div class="form-group">
-                        <label for="memberName"><i class="fas fa-user"></i> Nome do Membro</label>
+                        <label for="memberName"><i class="fas fa-user"></i> Nome do membro</label>
                         <input type="text" id="memberName" class="form-control" placeholder="Digite o nome completo"
                             required>
                     </div>
                     <div class="form-group">
-                        <label for="memberRole"><i class="fas fa-briefcase"></i> Cargo/Função</label>
+                        <label for="memberRole"><i class="fas fa-briefcase"></i> Cargo / função</label>
                         <select id="memberRole" class="form-control" required>
                             <option value="">— Selecione o cargo —</option>
                             <option value="Diretor">Diretor</option>
@@ -389,27 +437,27 @@
                             <option value="backend">Backend</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-success" id="memberSubmitBtn">
-                            <i class="fas fa-save"></i> Cadastrar Membro
-                        </button>
+                    <div class="modal-footer">
                         <button type="button" class="btn btn-warning" id="memberCancelBtn" style="display: none;">
-                            <i class="fas fa-times"></i> Cancelar Edição
+                            <i class="fas fa-times"></i> Cancelar edição
+                        </button>
+                        <button type="submit" class="btn btn-success" id="memberSubmitBtn">
+                            <i class="fas fa-save"></i> Cadastrar membro
                         </button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- modal de criação de projeto -->
+        <!-- Novo projeto -->
         <div id="modalProject" class="modal-overlay">
             <div class="modal-content">
-                <button class="btn-close-modal" onclick="closeModal('modalProject')">&times;</button>
-                <h2><i class="fas fa-project-diagram"></i> Cadastrar Novo Projeto</h2>
+                <button class="btn-close-modal" onclick="closeModal('modalProject')" aria-label="Fechar">&times;</button>
+                <h2><i class="fas fa-diagram-project"></i> Cadastrar novo projeto</h2>
                 <form id="projectForm">
                     <input type="hidden" id="projectId" value="">
                     <div class="form-group">
-                        <label for="projectName"><i class="fas fa-tag"></i> Nome do Projeto</label>
+                        <label for="projectName"><i class="fas fa-tag"></i> Nome do projeto</label>
                         <input type="text" id="projectName" class="form-control" placeholder="Digite o nome do projeto"
                             required>
                     </div>
@@ -419,123 +467,117 @@
                             placeholder="Descreva o projeto"></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="overloadPoints"><i class="fas fa-weight-hanging"></i> Pontos de Sobrecarga
+                        <label for="overloadPoints"><i class="fas fa-weight-hanging"></i> Pontos de sobrecarga
                             (1-10)</label>
-                        <input type="range" id="overloadPoints" class="form-control" min="1" max="10" value="5"
-                            style="height: 10px;">
-                        <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                        <input type="range" id="overloadPoints" class="form-control" min="1" max="10" value="5">
+                        <div class="range-legend">
                             <small>Baixa</small>
-                            <span id="pointsValue" style="font-weight: bold; color: var(--primary);">5 pontos</span>
+                            <span id="pointsValue" class="range-value">5 pontos</span>
                             <small>Alta</small>
                         </div>
                     </div>
 
-                    <h3 class="section-title"><i class="fas fa-user-tag"></i> Alocar Membros ao Projeto</h3>
-                    <div id="membersAllocation">
-                        <!-- Alocações serão geradas dinamicamente -->
-                    </div>
+                    <h3 class="section-title"><i class="fas fa-user-tag"></i> Alocar membros ao projeto</h3>
+                    <div id="membersAllocation"></div>
 
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-success" id="projectSubmitBtn">
-                            <i class="fas fa-save"></i> Cadastrar Projeto
-                        </button>
+                    <div class="modal-footer">
                         <button type="button" class="btn btn-warning" id="projectCancelBtn" style="display: none;">
-                            <i class="fas fa-times"></i> Cancelar Edição
+                            <i class="fas fa-times"></i> Cancelar edição
+                        </button>
+                        <button type="submit" class="btn btn-success" id="projectSubmitBtn">
+                            <i class="fas fa-save"></i> Cadastrar projeto
                         </button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- modal de criação de teste -->
+        <!-- Novo teste -->
         <div id="modalTest" class="modal-overlay">
             <div class="modal-content">
-                <button class="btn-close-modal" onclick="closeModal('modalTest')">&times;</button>
-                <h2><i class="fas fa-vial"></i> Novo Teste</h2>
+                <button class="btn-close-modal" onclick="closeModal('modalTest')" aria-label="Fechar">&times;</button>
+                <h2><i class="fas fa-vial"></i> Novo teste</h2>
                 <form id="testForm">
                     <div class="form-group">
-                        <label>Projeto Vinculado</label>
+                        <label>Projeto vinculado</label>
                         <select id="testProjectSelect" class="form-control" required>
                             <option value="">Carregando projetos...</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label>Nome do Teste / Ciclo</label>
-                        <input type="text" id="testName" class="form-control" placeholder="Ex: Teste de Regressão V2"
+                        <label>Nome do teste / ciclo</label>
+                        <input type="text" id="testName" class="form-control" placeholder="Ex: Teste de regressão V2"
                             required>
                     </div>
 
                     <div class="form-group">
-                        <label>Sobrecarga do Teste: <span id="testPointsVal"
-                                style="color: #ea580c; font-weight: bold;">3</span></label>
+                        <label>Sobrecarga do teste: <span id="testPointsVal" class="range-value">3</span></label>
                         <input type="range" id="testPoints" class="form-control" min="1" max="10" value="3">
                     </div>
 
                     <div class="form-group">
-                        <label>Status Inicial</label>
+                        <label>Status inicial</label>
                         <select id="testStatus" class="form-control">
-                            <option value="em_andamento">Em Andamento (Gera Carga)</option>
-                            <option value="concluido">Concluído (Histórico)</option>
+                            <option value="em_andamento">Em andamento (gera carga)</option>
+                            <option value="concluido">Concluído (histórico)</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label>Alocar Membros para Teste</label>
-                        <div id="testMembersChecks" class="checkbox-group"
-                            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
-                        </div>
+                        <label>Alocar membros para o teste</label>
+                        <div id="testMembersChecks" class="checkbox-group"></div>
                     </div>
 
-                    <button type="submit" class="btn btn-add-test" style="width: 100%;">
-                        <i class="fas fa-save"></i> Criar Teste
-                    </button>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-add-test btn-block">
+                            <i class="fas fa-save"></i> Criar teste
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
 
-        <!-- modal de criação de Scrum -->
+        <!-- Definir Scrum Master -->
         <div id="modalScrum" class="modal-overlay">
             <div class="modal-content">
-                <button class="btn-close-modal" onclick="closeModal('modalScrum ')">&times;</button>
-                <h2><i class="fas fa-user-shield"></i> Definir Scrum Masters</h2>
+                <button class="btn-close-modal" onclick="closeModal('modalScrum')" aria-label="Fechar">&times;</button>
+                <h2><i class="fas fa-user-shield"></i> Definir Scrum Master</h2>
                 <form id="scrumForm">
                     <div class="form-group">
-                        <label for="scrumProject"><i class="fas fa-project-diagram"></i> Selecione o
-                            Projeto</label>
+                        <label for="scrumProject"><i class="fas fa-diagram-project"></i> Selecione o projeto</label>
                         <select id="scrumProject" class="form-control" required>
                             <option value="">Selecione um projeto</option>
-                            <!-- Opções serão preenchidas dinamicamente -->
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label for="scrumMaster"><i class="fas fa-user-shield"></i> Selecione o Scrum
-                            Master</label>
+                        <label for="scrumMaster"><i class="fas fa-user-shield"></i> Selecione o Scrum Master</label>
                         <select id="scrumMaster" class="form-control" required>
                             <option value="">Selecione um membro</option>
-                            <!-- Opções serão preenchidas dinamicamente -->
                         </select>
                     </div>
 
-                    <button type="submit" class="btn btn-purple">
-                        <i class="fas fa-save"></i> Definir Scrum Master
-                    </button>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-purple btn-block">
+                            <i class="fas fa-save"></i> Definir Scrum Master
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
 
-        <!-- modal de criação de atividades extras -->
+        <!-- Nova atividade -->
         <div id="modalActivity" class="modal-overlay">
             <div class="modal-content">
-                <button class="btn-close-modal" onclick="closeModal('modalActivity')">&times;</button>
-                <h2><i class="fas fa-plus-circle"></i> Cadastrar Atividade Extra</h2>
+                <button class="btn-close-modal" onclick="closeModal('modalActivity')" aria-label="Fechar">&times;</button>
+                <h2><i class="fas fa-plus-circle"></i> Cadastrar atividade extra</h2>
                 <form id="activityForm">
                     <input type="hidden" id="activityId" value="">
                     <div class="form-group">
-                        <label for="activityName"><i class="fas fa-tasks"></i> Nome da Atividade</label>
+                        <label for="activityName"><i class="fas fa-tasks"></i> Nome da atividade</label>
                         <input type="text" id="activityName" class="form-control"
-                            placeholder="Ex: Reunião de alinhamento, Mentoria, Suporte" required>
+                            placeholder="Ex: Reunião de alinhamento, mentoria, suporte" required>
                     </div>
                     <div class="form-group">
                         <label for="activityDescription"><i class="fas fa-align-left"></i> Descrição</label>
@@ -543,21 +585,18 @@
                             placeholder="Descreva a atividade extra"></textarea>
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-users"></i> Membros Responsáveis</label>
-                        <div id="activityMembersAllocation" class="checkbox-group"
-                            style="max-height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
-                            <span style="color: #888;">Carregando membros...</span>
+                        <label><i class="fas fa-users"></i> Membros responsáveis</label>
+                        <div id="activityMembersAllocation" class="checkbox-scroll">
+                            <span class="muted">Carregando membros...</span>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="activityPoints"><i class="fas fa-weight-hanging"></i> Pontos de Sobrecarga
+                        <label for="activityPoints"><i class="fas fa-weight-hanging"></i> Pontos de sobrecarga
                             (1-5)</label>
-                        <input type="range" id="activityPoints" class="form-control" min="1" max="5" value="3"
-                            style="height: 10px;">
-                        <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                        <input type="range" id="activityPoints" class="form-control" min="1" max="5" value="3">
+                        <div class="range-legend">
                             <small>Baixa</small>
-                            <span id="activityPointsValue" style="font-weight: bold; color: #f72585;">3
-                                pontos</span>
+                            <span id="activityPointsValue" class="range-value">3 pontos</span>
                             <small>Alta</small>
                         </div>
                     </div>
@@ -570,39 +609,38 @@
                         </select>
                     </div>
 
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-pink" id="activitySubmitBtn">
-                            <i class="fas fa-save"></i> Cadastrar Atividade
-                        </button>
+                    <div class="modal-footer">
                         <button type="button" class="btn btn-warning" id="activityCancelBtn" style="display: none;">
-                            <i class="fas fa-times"></i> Cancelar Edição
+                            <i class="fas fa-times"></i> Cancelar edição
+                        </button>
+                        <button type="submit" class="btn btn-pink" id="activitySubmitBtn">
+                            <i class="fas fa-save"></i> Cadastrar atividade
                         </button>
                     </div>
                 </form>
             </div>
         </div>
 
-
-
-        <!-- Modal de Confirmação -->
+        <!-- Confirmação de exclusão -->
         <div id="confirmModal" class="modal-overlay">
-            <div class="modal">
-                <h3><i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão</h3>
+            <div class="modal modal-confirm">
+                <span class="modal-confirm-icon"><i class="fas fa-triangle-exclamation"></i></span>
+                <h3>Confirmar exclusão</h3>
                 <p id="confirmMessage">Tem certeza que deseja excluir este item?</p>
                 <div class="modal-actions">
-                    <button class="btn btn-danger" id="confirmDeleteBtn">
-                        <i class="fas fa-trash"></i> Sim, Excluir
-                    </button>
-                    <button class="btn btn-info" id="cancelDeleteBtn">
+                    <button class="btn btn-ghost-line" id="cancelDeleteBtn">
                         <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="fas fa-trash"></i> Sim, excluir
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Floating Alert -->
+        <!-- Toast -->
         <div id="floatingAlert" class="floating-alert">
-            <i class="fas fa-check-circle fa-lg"></i>
+            <i class="fas fa-check-circle"></i>
             <div id="alertMessage"></div>
         </div>
     </div>
@@ -619,6 +657,7 @@
     <script src="js/scrum.js"></script>
     <script src="js/testes.js"></script>
     <script src="js/modal.js"></script>
+    <script src="js/ui.js"></script>
 
 </body>
 

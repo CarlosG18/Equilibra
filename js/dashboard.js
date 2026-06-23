@@ -56,12 +56,12 @@ function renderOverloadChart(low, medium, high) {
     const summaryDiv = document.getElementById('overloadTextSummary');
     if (summaryDiv) {
         summaryDiv.innerHTML = `
-            <ul style="list-style: none; padding: 0;">
-                <li style="margin-bottom: 10px; color: #2ecc71; font-weight: bold;"><i class="fas fa-circle"></i> ${low} membros com carga tranquila</li>
-                <li style="margin-bottom: 10px; color: #f1c40f; font-weight: bold;"><i class="fas fa-circle"></i> ${medium} membros em atenção</li>
-                <li style="margin-bottom: 10px; color: #e74c3c; font-weight: bold;"><i class="fas fa-circle"></i> ${high} membros sobrecarregados</li>
+            <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px;">
+                <li style="color: #056aa1; font-weight: 600;"><i class="fas fa-circle" style="font-size:0.7em;"></i> ${low} membros com carga tranquila</li>
+                <li style="color: #b4600a; font-weight: 600;"><i class="fas fa-circle" style="font-size:0.7em;"></i> ${medium} membros em atenção</li>
+                <li style="color: #bb1f12; font-weight: 600;"><i class="fas fa-circle" style="font-size:0.7em;"></i> ${high} membros sobrecarregados</li>
             </ul>
-            <p style="color: #666; font-size: 0.9em;">Recomenda-se redistribuir tarefas dos membros em vermelho para os membros em verde.</p>
+            <p style="color: var(--text-2,#5b6273); font-size: 0.85em; margin-top: 12px;">Recomenda-se redistribuir tarefas dos membros em vermelho para os membros em verde.</p>
         `;
     }
 
@@ -72,15 +72,27 @@ function renderOverloadChart(low, medium, high) {
             labels: ['Disponível (<10)', 'Atenção (10-15)', 'Crítico (>15)'],
             datasets: [{
                 data: [low, medium, high],
-                backgroundColor: ['#2ecc71', '#f1c40f', '#e74c3c'],
-                borderWidth: 0
+                backgroundColor: ['#0787cb', '#fc9c14', '#e23d28'],
+                borderColor: '#ffffff',
+                borderWidth: 3,
+                hoverOffset: 6
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            cutout: '64%',
             plugins: {
-                legend: { position: 'bottom' }
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        padding: 16,
+                        font: { family: "'Inter', sans-serif", size: 12 },
+                        color: '#5b6273'
+                    }
+                }
             }
         }
     });
@@ -94,7 +106,7 @@ function renderDashboardLists() {
     if (mostAvailableList) {
         mostAvailableList.innerHTML = sortedByLowLoad.slice(0, 5).map(m => `
             <div style="display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
-                <span><i class="fas fa-user" style="color: #2ecc71;"></i> ${m.name}</span>
+                <span><i class="fas fa-user" style="color: #0787cb;"></i> ${m.name}</span>
                 <span class="badge badge-success">${m.overload || 0} pts</span>
             </div>
         `).join('') || '<small>Sem dados.</small>';
@@ -105,11 +117,11 @@ function renderDashboardLists() {
     const alertList = document.getElementById('alertMembers');
     if (alertList) {
         alertList.innerHTML = alertMembers.length > 0 ? alertMembers.map(m => `
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #c0392b;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #bb1f12;">
                 <strong><i class="fas fa-exclamation-circle"></i> ${m.name}</strong>
                 <strong>${m.overload || 0} pts</strong>
             </div>
-        `).join('') : '<div style="color: #2ecc71;"><i class="fas fa-check"></i> Ninguém sobrecarregado!</div>';
+        `).join('') : '<div style="color: #056aa1;"><i class="fas fa-check"></i> Ninguém sobrecarregado!</div>';
     }
 
     // C. Lista de Scrum Masters e seus Projetos
@@ -158,14 +170,14 @@ function buildProjectsTooltipHtml(memberProjects, smProjects) {
         ...memberProjects.map(p => `
             <div class="overload-tooltip-row">
                 <span class="overload-tooltip-label">
-                    <i class="fas fa-project-diagram" style="color:#4361ee;width:14px"></i> ${p.name}
+                    <i class="fas fa-project-diagram" style="color:#043c73;width:14px"></i> ${p.name}
                 </span>
                 <span class="overload-tooltip-pts">${p.overload_points || 0} pts</span>
             </div>`),
         ...smProjects.map(p => `
             <div class="overload-tooltip-row">
                 <span class="overload-tooltip-label">
-                    <i class="fas fa-crown" style="color:#7209b7;width:14px"></i> SM: ${p.name}
+                    <i class="fas fa-crown" style="color:#0787cb;width:14px"></i> SM: ${p.name}
                 </span>
                 <span class="overload-tooltip-pts">+2 pts</span>
             </div>`),
@@ -180,7 +192,7 @@ function buildActivitiesTooltipHtml(memberActivities) {
     const rows = memberActivities.map(a => `
         <div class="overload-tooltip-row">
             <span class="overload-tooltip-label">
-                <i class="fas fa-tasks" style="color:#f39c12;width:14px"></i> ${a.name || a.title || 'Atividade'}
+                <i class="fas fa-tasks" style="color:#fc9c14;width:14px"></i> ${a.name || a.title || 'Atividade'}
             </span>
             <span class="overload-tooltip-pts">${a.points || 0} pts</span>
         </div>`).join('');
@@ -247,16 +259,16 @@ function renderWorkloadTable() {
 
         // A. Flag de Scrum Master (Roxa)
         const isScrumMaster = smProjects.length > 0;
-        const smFlag = isScrumMaster 
+        const smFlag = isScrumMaster
             ? `<span style="
-                  background-color: #f3e5f5; 
-                  color: #7b1fa2; 
-                  font-size: 0.7em; 
+                  background-color: #e3f3fc;
+                  color: #056aa1;
+                  font-size: 0.7em;
                   font-weight: bold;
-                  padding: 2px 6px; 
-                  border-radius: 4px; 
-                  margin-left: 8px; 
-                  border: 1px solid #e1bee7; 
+                  padding: 2px 6px;
+                  border-radius: 4px;
+                  margin-left: 8px;
+                  border: 1px solid #c2e4f5;
                   vertical-align: middle;
                   display: inline-block;" 
                   title="Atua como Scrum Master em ${smProjects.length} projeto(s)">
@@ -271,20 +283,20 @@ function renderWorkloadTable() {
         if (overload >= 15) {
             // CRÍTICO
             statusBadge = `
-                <span style="background-color: #ffebee; color: #c62828; padding: 4px 10px; border-radius: 12px; font-size: 0.85em; font-weight: bold; border: 1px solid #ffcdd2; white-space: nowrap;">
+                <span style="background-color: #fdece9; color: #a51d1d; padding: 4px 10px; border-radius: 12px; font-size: 0.85em; font-weight: bold; border: 1px solid #f4c9c9; white-space: nowrap;">
                     <i class="fas fa-fire"></i> Crítico
                 </span>`;
             rowStyle = 'background-color: #fffafa;'; // Fundo levemente avermelhado na linha
         } else if (overload >= 10) {
             // ATENÇÃO
             statusBadge = `
-                <span style="background-color: #fff8e1; color: #f57f17; padding: 4px 10px; border-radius: 12px; font-size: 0.85em; font-weight: bold; border: 1px solid #ffecb3; white-space: nowrap;">
+                <span style="background-color: #fff1da; color: #b4600a; padding: 4px 10px; border-radius: 12px; font-size: 0.85em; font-weight: bold; border: 1px solid #f8d9a6; white-space: nowrap;">
                     <i class="fas fa-exclamation-triangle"></i> Atenção
                 </span>`;
         } else {
             // DISPONÍVEL
             statusBadge = `
-                <span style="background-color: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 12px; font-size: 0.85em; font-weight: bold; border: 1px solid #c8e6c9; white-space: nowrap;">
+                <span style="background-color: #e3f3fc; color: #056aa1; padding: 4px 10px; border-radius: 12px; font-size: 0.85em; font-weight: bold; border: 1px solid #c2e4f5; white-space: nowrap;">
                     <i class="fas fa-check"></i> Disponível
                 </span>`;
         }
@@ -338,7 +350,7 @@ function renderWorkloadTable() {
 
 // Função auxiliar de cores
 function getColorForLoad(value) {
-    if (value >= 15) return '#e74c3c';
-    if (value >= 10) return '#f1c40f';
-    return '#2ecc71';
+    if (value >= 15) return '#e23d28';
+    if (value >= 10) return '#fc9c14';
+    return '#0787cb';
 }

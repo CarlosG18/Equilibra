@@ -331,16 +331,16 @@ function renderActivitiesSummary() {
         const { member, activityCount, projectCount } = item;
 
         // --- LÓGICA DE CORES E ÍCONES ---
-        let badgeColor = '#2ecc71'; // Verde (Padrão)
+        let badgeColor = '#0787cb'; // Azul (tranquilo / padrão)
         let borderColor = 'transparent';
         let rankIcon = '';
 
         if (activityCount >= 5) {
-            badgeColor = '#e74c3c'; // Vermelho (Crítico)
-            borderColor = '#e74c3c';
+            badgeColor = '#e23d28'; // Vermelho (crítico)
+            borderColor = '#e23d28';
         } else if (activityCount >= 3) {
-            badgeColor = '#f39c12'; // Laranja (Atenção)
-            borderColor = '#f39c12';
+            badgeColor = '#fc9c14'; // Laranja (atenção)
+            borderColor = '#fc9c14';
         }
 
         // Top 3 Ícones

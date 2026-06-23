@@ -13,10 +13,10 @@ function renderSmartAllocationCheckboxes(selectedIds = []) {
     }
 
     const subareaConfig = [
-        { key: 'ux_ui',    label: 'UX/UI',    icon: 'fa-paint-brush', color: '#7209b7' },
-        { key: 'frontend', label: 'Frontend',  icon: 'fa-laptop-code', color: '#4361ee' },
-        { key: 'backend',  label: 'Backend',   icon: 'fa-server',      color: '#2ecc71' },
-        { key: '',         label: 'Sem subárea', icon: 'fa-user',       color: '#6c757d' },
+        { key: 'ux_ui',    label: 'UX/UI',    icon: 'fa-paint-brush', color: '#0a374e' },
+        { key: 'frontend', label: 'Frontend',  icon: 'fa-laptop-code', color: '#0787cb' },
+        { key: 'backend',  label: 'Backend',   icon: 'fa-server',      color: '#fc9c14' },
+        { key: '',         label: 'Sem subárea', icon: 'fa-user',       color: '#8893a3' },
     ];
 
     const rankIcons = ['🥇', '🥈', '🥉'];

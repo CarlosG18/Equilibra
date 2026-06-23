@@ -1,19 +1,20 @@
 /* ==========================================================================
-   Modais — refinamento visual (carregado após styles.css)
+   Modais — overlay, caixa e botão de fechar (carregado após styles.css)
    ========================================================================== */
 
 .modal-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.55);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    background: rgba(12, 15, 23, 0.5);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
     z-index: 2000;
     align-items: center;
     justify-content: center;
+    padding: 20px;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.25s ease;
 }
 
 .modal-overlay.active {
@@ -21,21 +22,20 @@
     opacity: 1;
 }
 
-/* Caixa do Modal */
+/* Caixa padrão (formulários) */
 .modal-content {
-    background: #fff;
-    padding: 32px;
-    border-radius: var(--radius-lg, 20px);
-    width: 95%;
-    max-width: 600px;
-    box-shadow: 0 30px 70px rgba(2, 6, 23, 0.4);
+    background: var(--surface, #fff);
+    padding: 28px;
+    border-radius: var(--radius-lg, 16px);
+    width: 100%;
+    max-width: 560px;
+    box-shadow: var(--shadow-lg, 0 20px 50px rgba(18, 21, 28, 0.18));
     position: relative;
-    transform: translateY(16px) scale(0.98);
-    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: translateY(14px) scale(0.985);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     max-height: 90vh;
     overflow-y: auto;
-    border: 1px solid var(--gray-light, #e2e8f0);
-    border-top: 4px solid var(--primary, #4361ee);
+    border: 1px solid var(--line, #e6e8ee);
 }
 
 .modal-overlay.active .modal-content {
@@ -43,110 +43,61 @@
 }
 
 .modal-content h2 {
-    color: var(--dark, #0f172a);
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin-bottom: 24px;
+    font-family: var(--font-display, 'Space Grotesk', sans-serif);
+    color: var(--ink, #12151c);
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 22px;
     padding-right: 36px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 11px;
 }
 
 .modal-content h2 i {
-    color: var(--primary, #4361ee);
-    font-size: 1.1rem;
+    color: var(--brand, #4f46e5);
+    font-size: 1rem;
 }
 
-/* Botão Fechar (X) */
+/* Caixa de confirmação (usa .modal) */
+.modal {
+    background: var(--surface, #fff);
+    padding: 30px;
+    border-radius: var(--radius-lg, 16px);
+    width: 100%;
+    max-width: 420px;
+    box-shadow: var(--shadow-lg, 0 20px 50px rgba(18, 21, 28, 0.18));
+    border: 1px solid var(--line, #e6e8ee);
+    transform: translateY(14px) scale(0.985);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-overlay.active .modal {
+    transform: translateY(0) scale(1);
+}
+
+/* Botão fechar (X) */
 .btn-close-modal {
     position: absolute;
-    top: 18px;
-    right: 18px;
-    width: 34px;
-    height: 34px;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
     display: grid;
     place-items: center;
-    background: var(--slate-100, #f1f5f9);
+    background: var(--canvas, #f5f6f8);
     border: none;
     border-radius: 50%;
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     line-height: 1;
-    color: var(--gray, #64748b);
+    color: var(--text-3, #8b91a1);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .btn-close-modal:hover {
-    background: #fee2e2;
-    color: var(--danger, #ef4444);
+    background: var(--danger-bg, #fcecec);
+    color: var(--danger, #dc2626);
     transform: rotate(90deg);
-}
-
-/* Área do cabeçalho de lista + botão "Novo Item" */
-.header-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 24px;
-    border-bottom: 1px solid var(--slate-100, #f1f5f9);
-    padding-bottom: 20px;
-    flex-wrap: wrap;
-}
-
-/* Botão Flutuante "Novo" */
-.btn-add-floating {
-    background: linear-gradient(135deg, var(--primary, #4361ee) 0%, var(--secondary, #3a0ca3) 100%);
-    color: white;
-    border: none;
-    padding: 12px 22px;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    font-family: inherit;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.btn-add-floating:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(67, 97, 238, 0.4);
-    filter: brightness(1.04);
-}
-
-.btn-add-floating:active {
-    transform: translateY(0);
-}
-
-/* Variações de cor */
-.btn-add-test {
-    background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
-    box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
-}
-
-.btn-add-test:hover {
-    box-shadow: 0 8px 18px rgba(234, 88, 12, 0.4);
-}
-
-.btn-add-activity {
-    background: linear-gradient(135deg, #f472b6 0%, #be185d 100%);
-    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
-}
-
-.btn-add-activity:hover {
-    box-shadow: 0 8px 18px rgba(236, 72, 153, 0.4);
-}
-
-.btn-add-scrum {
-    background: linear-gradient(135deg, #8b5cf6 0%, #5b21b6 100%);
-    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
-}
-
-.btn-add-scrum:hover {
-    box-shadow: 0 8px 18px rgba(124, 58, 237, 0.4);
 }
