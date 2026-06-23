@@ -72,30 +72,139 @@ if (memberForm) {
 
 // RENDER
 
+function buildOverloadBreakdown(memberId) {
+    const lines = [];
+
+    projects.forEach(proj => {
+        const pts = parseInt(proj.overload_points) || 0;
+        if ((proj.allocated_members || []).includes(memberId)) {
+            lines.push({ label: proj.name, pts, icon: 'fa-project-diagram', type: 'project' });
+        }
+        const smId = proj.scrum_master_id || proj.scrum_master;
+        if (smId === memberId) {
+            lines.push({ label: `SM: ${proj.name}`, pts: 2, icon: 'fa-crown', type: 'sm' });
+        }
+    });
+
+    extraActivities.forEach(act => {
+        if (act.status !== 'ativa') return;
+        const pts = parseInt(act.points) || 0;
+        const allocated = act.allocated_members && Array.isArray(act.allocated_members)
+            ? act.allocated_members.includes(memberId)
+            : act.member_id === memberId;
+        if (allocated) {
+            lines.push({ label: act.name || act.title || 'Atividade', pts, icon: 'fa-tasks', type: 'activity' });
+        }
+    });
+
+    if (typeof projectTests !== 'undefined' && Array.isArray(projectTests)) {
+        projectTests.forEach(test => {
+            if (test.status === 'em_andamento' && (test.members || []).includes(memberId)) {
+                const pts = parseInt(test.overload_points) || 0;
+                lines.push({ label: test.name || test.title || 'Teste', pts, icon: 'fa-vial', type: 'test' });
+            }
+        });
+    }
+
+    return lines;
+}
+
+function buildOverloadTooltipHtml(memberId) {
+    const lines = buildOverloadBreakdown(memberId);
+    if (lines.length === 0) {
+        return '<div class="overload-tooltip-empty">Sem alocações ativas</div>';
+    }
+
+    const typeColors = {
+        project:  '#4361ee',
+        sm:       '#7209b7',
+        activity: '#f39c12',
+        test:     '#4cc9f0',
+    };
+
+    const rows = lines.map(l => `
+        <div class="overload-tooltip-row">
+            <span class="overload-tooltip-label">
+                <i class="fas ${l.icon}" style="color:${typeColors[l.type]};width:14px"></i>
+                ${l.label}
+            </span>
+            <span class="overload-tooltip-pts">+${l.pts} pt${l.pts !== 1 ? 's' : ''}</span>
+        </div>
+    `).join('');
+
+    const total = lines.reduce((s, l) => s + l.pts, 0);
+
+    return `
+        <div class="overload-tooltip-title"><i class="fas fa-layer-group"></i> Detalhamento</div>
+        ${rows}
+        <div class="overload-tooltip-total">
+            <span>Total</span>
+            <span>${total} pontos</span>
+        </div>
+    `;
+}
+
+// Tooltip global fixo — criado uma vez e reposicionado a cada hover
+function _getOrCreateGlobalTooltip() {
+    let tip = document.getElementById('overloadGlobalTooltip');
+    if (!tip) {
+        tip = document.createElement('div');
+        tip.id = 'overloadGlobalTooltip';
+        tip.className = 'overload-tooltip-box';
+        tip.style.display = 'none';
+        document.body.appendChild(tip);
+    }
+    return tip;
+}
+
+function _positionTooltip(tip, anchor) {
+    const MARGIN = 8;
+    const rect = anchor.getBoundingClientRect();
+    const tw = tip.offsetWidth || 260;
+    const th = tip.offsetHeight;
+
+    // tenta posicionar acima; se não couber, posiciona abaixo
+    let top = rect.top - th - MARGIN;
+    if (top < MARGIN) top = rect.bottom + MARGIN;
+
+    // centraliza horizontalmente, garantindo que não saia da tela
+    let left = rect.left + rect.width / 2 - tw / 2;
+    left = Math.max(MARGIN, Math.min(left, window.innerWidth - tw - MARGIN));
+
+    tip.style.top  = `${top}px`;
+    tip.style.left = `${left}px`;
+}
+
+function setupOverloadTooltips() {
+    const tip = _getOrCreateGlobalTooltip();
+    const list = document.getElementById('membersList');
+    if (!list) return;
+
+    list.addEventListener('mouseenter', function (e) {
+        const wrapper = e.target.closest('.overload-tooltip-wrapper');
+        if (!wrapper) return;
+        const memberId = wrapper.dataset.memberId;
+        tip.innerHTML = buildOverloadTooltipHtml(memberId);
+        tip.style.display = 'block';
+        _positionTooltip(tip, wrapper);
+    }, true);
+
+    list.addEventListener('mouseleave', function (e) {
+        if (!e.target.closest('.overload-tooltip-wrapper')) return;
+        tip.style.display = 'none';
+    }, true);
+}
+
 function renderMembers() {
-    const list = document.getElementById('membersList'); // Ajuste o ID conforme seu HTML (pode ser membersWorkloadList ou outro)
+    const list = document.getElementById('membersList');
     if (!list) return;
 
     list.innerHTML = '';
-    
-    // Ordenar por sobrecarga (decrescente)
+
     const sortedMembers = [...members].sort((a, b) => b.overload - a.overload);
 
     sortedMembers.forEach(member => {
-        // Encontrar projetos deste membro
-        const memberProjects = projects.filter(p => 
-            (p.allocated_members && p.allocated_members.includes(member.id)) || 
-            p.scrum_master === member.id
-        );
-
-        const projectNames = memberProjects.map(p => p.name).join(', ');
         const overloadClass = getOverloadClassForMember(member.overload);
-
-        // Verifica se é SM em algum lugar
-        const isSM = projects.some(p => p.scrum_master === member.id);
-        
-        // Verifica atividades
-        const memberActivities = extraActivities.filter(a => a.member_id === member.id && a.status === 'ativa');
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -104,7 +213,11 @@ function renderMembers() {
             </td>
             <td>${member.role}</td>
             <td>
-                <span class="overload-indicator ${overloadClass}">${member.overload} pontos</span>
+                <div class="overload-tooltip-wrapper" data-member-id="${member.id}">
+                    <span class="overload-indicator ${overloadClass}">
+                        ${member.overload} pontos <i class="fas fa-info-circle" style="font-size:0.8em;opacity:0.7"></i>
+                    </span>
+                </div>
             </td>
             <td>
                 <div class="action-buttons">
@@ -119,6 +232,8 @@ function renderMembers() {
         `;
         list.appendChild(tr);
     });
+
+    setupOverloadTooltips();
 }
 
 // CRUD

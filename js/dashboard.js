@@ -149,10 +149,68 @@ function renderDashboardLists() {
     }
 }
 
+// --- TOOLTIPS DA TABELA DE CARGA ---
+function buildProjectsTooltipHtml(memberProjects, smProjects) {
+    if (memberProjects.length === 0 && smProjects.length === 0) {
+        return '<div class="overload-tooltip-empty">Sem projetos alocados</div>';
+    }
+    const rows = [
+        ...memberProjects.map(p => `
+            <div class="overload-tooltip-row">
+                <span class="overload-tooltip-label">
+                    <i class="fas fa-project-diagram" style="color:#4361ee;width:14px"></i> ${p.name}
+                </span>
+                <span class="overload-tooltip-pts">${p.overload_points || 0} pts</span>
+            </div>`),
+        ...smProjects.map(p => `
+            <div class="overload-tooltip-row">
+                <span class="overload-tooltip-label">
+                    <i class="fas fa-crown" style="color:#7209b7;width:14px"></i> SM: ${p.name}
+                </span>
+                <span class="overload-tooltip-pts">+2 pts</span>
+            </div>`),
+    ].join('');
+    return `<div class="overload-tooltip-title"><i class="fas fa-project-diagram"></i> Projetos</div>${rows}`;
+}
+
+function buildActivitiesTooltipHtml(memberActivities) {
+    if (memberActivities.length === 0) {
+        return '<div class="overload-tooltip-empty">Sem atividades ativas</div>';
+    }
+    const rows = memberActivities.map(a => `
+        <div class="overload-tooltip-row">
+            <span class="overload-tooltip-label">
+                <i class="fas fa-tasks" style="color:#f39c12;width:14px"></i> ${a.name || a.title || 'Atividade'}
+            </span>
+            <span class="overload-tooltip-pts">${a.points || 0} pts</span>
+        </div>`).join('');
+    return `<div class="overload-tooltip-title"><i class="fas fa-tasks"></i> Atividades Extras</div>${rows}`;
+}
+
+function setupWorkloadTableTooltips() {
+    const tbody = document.getElementById('membersWorkloadList');
+    if (!tbody) return;
+
+    tbody.addEventListener('mouseenter', function (e) {
+        const cell = e.target.closest('[data-wl-tooltip]');
+        if (!cell) return;
+        const tip = _getOrCreateGlobalTooltip();
+        tip.innerHTML = cell.dataset.wlTooltip;
+        tip.style.display = 'block';
+        _positionTooltip(tip, cell);
+    }, true);
+
+    tbody.addEventListener('mouseleave', function (e) {
+        if (!e.target.closest('[data-wl-tooltip]')) return;
+        const tip = document.getElementById('overloadGlobalTooltip');
+        if (tip) tip.style.display = 'none';
+    }, true);
+}
+
 // --- TABELA DETALHADA DE CARGA (COM FLAG SM E ORDENAÇÃO) ---
 function renderWorkloadTable() {
     const tbody = document.getElementById('membersWorkloadList');
-    
+
     // Verificação de segurança
     if (!tbody) return;
 
@@ -235,6 +293,9 @@ function renderWorkloadTable() {
         const row = document.createElement('tr');
         if (rowStyle) row.style.cssText = rowStyle;
 
+        const projectsTooltip = buildProjectsTooltipHtml(memberProjects, smProjects).replace(/"/g, '&quot;');
+        const activitiesTooltip = buildActivitiesTooltipHtml(memberActivities).replace(/"/g, '&quot;');
+
         row.innerHTML = `
             <td>
                 <div style="font-weight: bold; color: var(--dark-blue); display: flex; align-items: center;">
@@ -244,13 +305,17 @@ function renderWorkloadTable() {
                 <small style="color: #888;">${member.role}</small>
             </td>
             <td style="text-align: center;">
-                <span class="badge" style="background-color: #f0f2f5; color: #555; border: 1px solid #ddd; min-width: 30px;">
-                    ${memberProjects.length}
+                <span class="badge wl-tooltip-anchor" data-wl-tooltip="${projectsTooltip}"
+                      style="background-color: #f0f2f5; color: #555; border: 1px solid #ddd; min-width: 30px; cursor: default;">
+                    ${memberProjects.length + smProjects.length}
+                    <i class="fas fa-info-circle" style="font-size:0.75em;opacity:0.5;margin-left:2px"></i>
                 </span>
             </td>
             <td style="text-align: center;">
-                <span class="badge" style="background-color: #f0f2f5; color: #555; border: 1px solid #ddd; min-width: 30px;">
+                <span class="badge wl-tooltip-anchor" data-wl-tooltip="${activitiesTooltip}"
+                      style="background-color: #f0f2f5; color: #555; border: 1px solid #ddd; min-width: 30px; cursor: default;">
                     ${memberActivities.length}
+                    <i class="fas fa-info-circle" style="font-size:0.75em;opacity:0.5;margin-left:2px"></i>
                 </span>
             </td>
             <td style="width: 25%;">
@@ -267,6 +332,8 @@ function renderWorkloadTable() {
         `;
         tbody.appendChild(row);
     });
+
+    setupWorkloadTableTooltips();
 }
 
 // Função auxiliar de cores
