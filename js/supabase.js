@@ -146,9 +146,27 @@ const ProjectService = {
 
     // Função específica rápida apenas para trocar o SM (opcional, mas útil)
     async definirScrumMaster(projectId, scrumMasterId) {
+        const updatePayload = { scrum_master: scrumMasterId || null };
+
+        // Se está atribuindo um SM, garante que ele está no allocated_members
+        if (scrumMasterId) {
+            const { data: current, error: fetchError } = await _supabase
+                .from('projects')
+                .select('allocated_members')
+                .eq('id', projectId)
+                .single();
+
+            if (fetchError) return { success: false, error: fetchError.message };
+
+            const allocated = current.allocated_members || [];
+            if (!allocated.includes(scrumMasterId)) {
+                updatePayload.allocated_members = [...allocated, scrumMasterId];
+            }
+        }
+
         const { data, error } = await _supabase
             .from('projects')
-            .update({ scrum_master: scrumMasterId || null })
+            .update(updatePayload)
             .eq('id', projectId)
             .select();
 

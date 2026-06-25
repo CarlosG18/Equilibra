@@ -81,14 +81,6 @@ if (scrumForm) {
             return;
         }
 
-        // Verifica se o membro está alocado no projeto (Regra de Negócio)
-        // Nota: O campo no banco é allocated_members (snake_case)
-        const allocated = project.allocated_members || [];
-        if (!allocated.includes(scrumMasterId)) {
-            showFloatingAlert('Este membro não está alocado no projeto. Aloque-o antes de torná-lo Scrum Master.', 'warning');
-            return;
-        }
-
         // 3. Feedback Visual
         const submitBtn = this.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
