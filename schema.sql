@@ -95,6 +95,13 @@ ALTER TABLE extra_activities  ADD COLUMN IF NOT EXISTS deadline DATE;
 ALTER TABLE project_tests     ADD COLUMN IF NOT EXISTS deadline DATE;
 
 -- ==========================================
+-- MIGRAÇÕES: carga pessoal dos membros
+-- Execute no SQL Editor do Supabase se a tabela members já existir
+-- ==========================================
+ALTER TABLE members ADD COLUMN IF NOT EXISTS num_materias INTEGER DEFAULT 0;
+ALTER TABLE members ADD COLUMN IF NOT EXISTS trabalho     BOOLEAN DEFAULT FALSE;
+
+-- ==========================================
 -- ROW LEVEL SECURITY (opcional — ative se quiser
 -- que cada usuário veja apenas seus próprios dados)
 -- ==========================================

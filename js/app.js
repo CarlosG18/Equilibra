@@ -156,6 +156,13 @@ function calculateOverload() {
             m.overload += 5;
         }
     });
+
+    // 5. Carga pessoal: trabalho (+4) e matérias (round(qtd × 0.5) — cada 2 matérias = 1 pt)
+    members.forEach(m => {
+        if (m.trabalho) m.overload += 4;
+        const mats = parseInt(m.num_materias) || 0;
+        if (mats > 0) m.overload += Math.round(mats * 0.5);
+    });
 }
 
 

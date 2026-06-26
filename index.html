@@ -432,6 +432,17 @@
                             <option value="backend">Backend</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="memberMaterias"><i class="fas fa-book"></i> Matérias no semestre</label>
+                        <input type="number" id="memberMaterias" class="form-control" min="0" max="20" placeholder="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-briefcase"></i> Situação de trabalho</label>
+                        <label class="checkbox-label" style="margin-top:6px;display:flex;align-items:center;gap:8px;cursor:pointer;">
+                            <input type="checkbox" id="memberTrabalho">
+                            <span>Está empregado / trabalhando</span>
+                        </label>
+                    </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-warning" id="memberCancelBtn" style="display: none;">
                             <i class="fas fa-times"></i> Cancelar edição

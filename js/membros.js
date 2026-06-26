@@ -11,6 +11,8 @@ if (memberForm) {
         const name = document.getElementById('memberName').value;
         const role = document.getElementById('memberRole').value;
         const subarea = document.getElementById('memberSubarea').value;
+        const num_materias = document.getElementById('memberMaterias').value;
+        const trabalho = document.getElementById('memberTrabalho').checked;
         //const email = document.getElementById('memberEmail').value;
 
         // 2. FEEDBACK VISUAL
@@ -25,7 +27,7 @@ if (memberForm) {
             // --- DECISÃO: CRIAR OU ATUALIZAR? ---
             if (editingMemberId) {
                 // >>> MODO EDIÇÃO <<<
-                res = await ProjectService.atualizarMembro(editingMemberId, name, role, subarea);
+                res = await ProjectService.atualizarMembro(editingMemberId, name, role, subarea, num_materias, trabalho);
 
                 if (res.success) {
                     // Atualiza o membro no array local
@@ -40,7 +42,7 @@ if (memberForm) {
 
             } else {
                 // >>> MODO CRIAÇÃO <<<
-                res = await ProjectService.adicionarMembro(name, role, subarea);
+                res = await ProjectService.adicionarMembro(name, role, subarea, num_materias, trabalho);
 
                 if (res.success) {
                     members.push(res.data);
@@ -110,8 +112,18 @@ function buildOverloadBreakdown(memberId) {
     }
 
     const member = members.find(m => m.id === memberId);
-    if (member && member.role && member.role.toLowerCase().includes('gerente')) {
-        lines.push({ label: 'Bônus de Gerência', pts: 5, icon: 'fa-user-tie', type: 'cargo' });
+    if (member) {
+        if (member.role && member.role.toLowerCase().includes('gerente')) {
+            lines.push({ label: 'Bônus de Gerência', pts: 5, icon: 'fa-user-tie', type: 'cargo' });
+        }
+        if (member.trabalho) {
+            lines.push({ label: 'Emprego', pts: 4, icon: 'fa-briefcase', type: 'personal' });
+        }
+        const mats = parseInt(member.num_materias) || 0;
+        if (mats > 0) {
+            const matPts = Math.round(mats * 0.5);
+            lines.push({ label: `${mats} matéria${mats !== 1 ? 's' : ''}`, pts: matPts, icon: 'fa-book', type: 'personal' });
+        }
     }
 
     return lines;
@@ -129,6 +141,7 @@ function buildOverloadTooltipHtml(memberId) {
         activity: '#fc9c14',
         test:     '#5bb0e0',
         cargo:    '#7c3aed',
+        personal: '#10b981',
     };
 
     const rows = lines.map(l => `
@@ -284,6 +297,8 @@ function editMember(id) {
     document.getElementById('memberName').value = member.name;
     document.getElementById('memberRole').value = member.role;
     document.getElementById('memberSubarea').value = member.subarea || '';
+    document.getElementById('memberMaterias').value = member.num_materias || 0;
+    document.getElementById('memberTrabalho').checked = !!member.trabalho;
     //document.getElementById('memberEmail').value = member.email;
 
     // 2. Alterar estado visual para edição
