@@ -94,14 +94,14 @@ function calculateOverload() {
             }
         });
 
-        // Soma para o Scrum Master
-        // Nota: Geralmente SM ganha +2 fixo, mas mantive sua lógica de somar os pontos do projeto
-        // Se quiser fixo, troque 'points' por 2 na linha abaixo.
-        const smId = proj.scrum_master_id || proj.scrum_master; // Aceita os dois formatos
+        // Soma para o Scrum Master — peso proporcional à complexidade do projeto
+        // Fórmula: max(1, round(points * 0.4)) → 1 pt p/ baixa, 2 p/ média, 3-4 p/ alta complexidade
+        const smId = proj.scrum_master_id || proj.scrum_master;
         if (smId) {
             const sm = members.find(m => m.id === smId);
             if (sm) {
-                sm.overload += 2; // (Recomendado: SM ganha +2 fixo. Se quiser o valor do projeto, use 'points')
+                const smPoints = Math.max(1, Math.round(points * 0.4));
+                sm.overload += smPoints;
             }
         }
     });
