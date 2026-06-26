@@ -114,7 +114,7 @@ async function _criarProjeto(name, desc, points, selectedMembers, form, deadline
     if (res.success) {
         projects.push(res.data);
         showFloatingAlert('Projeto criado com sucesso!');
-        form.reset();
+        closeModal('modalProject');
         updateFullInterface();
     } else {
         showFloatingAlert('Erro: ' + res.error, 'error');
@@ -130,6 +130,7 @@ async function _salvarEdicaoProjeto(id, name, desc, points, selectedMembers, dea
         const index = projects.findIndex(p => p.id === id);
         if (index !== -1) projects[index] = res.data;
         showFloatingAlert('Projeto atualizado com sucesso!');
+        closeModal('modalProject');
         resetProjectFormState();
         updateFullInterface();
     } else {

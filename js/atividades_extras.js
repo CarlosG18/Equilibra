@@ -43,9 +43,10 @@ if (activityForm) {
                 if (res.success) {
                     const index = extraActivities.findIndex(a => a.id === editingActivityId);
                     if (index !== -1) extraActivities[index] = res.data;
-                    
+
                     showFloatingAlert('Atividade atualizada!', 'success');
                     cancelActivityEdit();
+                    closeModal('modalActivity');
                 }
 
             } else {
@@ -57,11 +58,7 @@ if (activityForm) {
                 if (res.success) {
                     extraActivities.push(res.data);
                     showFloatingAlert('Atividade criada!', 'success');
-                    this.reset();
-                    // Reset visual
-                    document.getElementById('activityPointsValue').textContent = "3 pontos";
-                    document.getElementById('activityPoints').value = 3;
-                    updateActivityAllocationCheckboxes(); // Limpa checkboxes
+                    closeModal('modalActivity');
                 }
             }
 

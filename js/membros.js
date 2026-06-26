@@ -35,6 +35,7 @@ if (memberForm) {
                     }
                     showFloatingAlert('Membro atualizado com sucesso!');
                     resetMemberFormState(); // Sai do modo edição
+                    closeModal('modalMember');
                 }
 
             } else {
@@ -44,7 +45,7 @@ if (memberForm) {
                 if (res.success) {
                     members.push(res.data);
                     showFloatingAlert('Membro adicionado com sucesso!');
-                    this.reset();
+                    closeModal('modalMember');
                 }
             }
 
