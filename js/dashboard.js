@@ -113,7 +113,7 @@ function renderDashboardLists() {
     }
 
     // B. Estado de Alerta (Membros com carga >= 15)
-    const alertMembers = members.filter(m => (m.overload || 0) >= 15);
+    const alertMembers = members.filter(m => (m.overload || 0) >= 15).sort((a, b) => (b.overload || 0) - (a.overload || 0));
     const alertList = document.getElementById('alertMembers');
     if (alertList) {
         alertList.innerHTML = alertMembers.length > 0 ? alertMembers.map(m => `
