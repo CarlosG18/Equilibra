@@ -460,7 +460,7 @@ function _sprintLabel(days) {
 }
 
 // ===================== Deadline Picker (data/sprints) =====================
-const SPRINT_DAYS = 14; // 1 sprint = 2 semanas
+const SPRINT_DAYS = 7; // 1 sprint = 1 semana
 
 function _formatDateBR(iso) {
     const [y, m, d] = iso.split('-');
