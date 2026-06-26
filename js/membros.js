@@ -84,7 +84,8 @@ function buildOverloadBreakdown(memberId) {
         }
         const smId = proj.scrum_master_id || proj.scrum_master;
         if (smId === memberId) {
-            lines.push({ label: `SM: ${proj.name}`, pts: 2, icon: 'fa-crown', type: 'sm' });
+            const smPts = Math.max(1, Math.round(pts * 0.4)) + 2;
+            lines.push({ label: `SM: ${proj.name}`, pts: smPts, icon: 'fa-crown', type: 'sm' });
         }
     });
 

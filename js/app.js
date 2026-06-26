@@ -100,7 +100,7 @@ function calculateOverload() {
         if (smId) {
             const sm = members.find(m => m.id === smId);
             if (sm) {
-                const smPoints = Math.max(1, Math.round(points * 0.4));
+                const smPoints = Math.max(1, Math.round(points * 0.4)) + 2;
                 sm.overload += smPoints;
             }
         }
