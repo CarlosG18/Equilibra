@@ -151,13 +151,44 @@ function renderDashboardLists() {
     // D. Atividades Extras Ativas (Top 5 recentes)
     const activeActivitiesDiv = document.getElementById('activeActivitiesList');
     if (activeActivitiesDiv) {
-        const activeActs = extraActivities.filter(a => a.status === 'ativa').slice(-5); // Pega as 5 últimas
+        const activeActs = extraActivities.filter(a => a.status === 'ativa').slice(-5);
         activeActivitiesDiv.innerHTML = activeActs.map(a => `
             <div style="margin-bottom: 8px; border-left: 3px solid var(--pink); padding-left: 8px;">
                 <div style="font-weight: bold;">${a.name}</div>
                 <small style="color: #888;">${a.points} pts</small>
             </div>
         `).join('') || '<small>Nenhuma atividade ativa.</small>';
+    }
+
+    // E. Próximos prazos (todos os itens com deadline, ordenados)
+    const upcomingDiv = document.getElementById('upcomingDeadlinesList');
+    if (upcomingDiv) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const upcoming = [];
+
+        projects.forEach(p => {
+            if (p.deadline) upcoming.push({ name: p.name, deadline: p.deadline, icon: 'fa-diagram-project', color: '#0787cb' });
+        });
+        extraActivities.filter(a => a.status === 'ativa').forEach(a => {
+            if (a.deadline) upcoming.push({ name: a.name, deadline: a.deadline, icon: 'fa-tasks', color: '#fc9c14' });
+        });
+        if (typeof projectTests !== 'undefined' && Array.isArray(projectTests)) {
+            projectTests.filter(t => t.status === 'em_andamento').forEach(t => {
+                if (t.deadline) upcoming.push({ name: t.name, deadline: t.deadline, icon: 'fa-vial', color: '#8893a3' });
+            });
+        }
+
+        upcoming.sort((a, b) => a.deadline.localeCompare(b.deadline));
+
+        upcomingDiv.innerHTML = upcoming.slice(0, 6).map(item => `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                <span style="font-size:0.88em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:55%;">
+                    <i class="fas ${item.icon}" style="color:${item.color}"></i> ${item.name}
+                </span>
+                <span>${formatDeadlineCountdown(item.deadline)}</span>
+            </div>
+        `).join('') || '<small style="color:#aaa">Nenhum prazo cadastrado.</small>';
     }
 }
 
@@ -307,6 +338,7 @@ function renderWorkloadTable() {
 
         const projectsTooltip = buildProjectsTooltipHtml(memberProjects, smProjects).replace(/"/g, '&quot;');
         const activitiesTooltip = buildActivitiesTooltipHtml(memberActivities).replace(/"/g, '&quot;');
+        const earliestDeadline = getEarliestDeadlineForMember(member.id);
 
         row.innerHTML = `
             <td>
@@ -341,11 +373,40 @@ function renderWorkloadTable() {
             <td style="text-align: center;">
                 ${statusBadge}
             </td>
+            <td style="text-align: center; white-space: nowrap;">
+                ${formatDeadlineCountdown(earliestDeadline)}
+            </td>
         `;
         tbody.appendChild(row);
     });
 
     setupWorkloadTableTooltips();
+}
+
+// Retorna a data mais próxima (string ISO) entre todos os itens ativos do membro
+function getEarliestDeadlineForMember(memberId) {
+    const deadlines = [];
+    projects.forEach(p => {
+        const allocated = p.allocated_members || [];
+        if ((allocated.includes(memberId) || p.scrum_master === memberId) && p.deadline) {
+            deadlines.push(p.deadline);
+        }
+    });
+    extraActivities.forEach(a => {
+        const allocated = a.allocated_members || [];
+        if (a.status === 'ativa' && allocated.includes(memberId) && a.deadline) {
+            deadlines.push(a.deadline);
+        }
+    });
+    if (typeof projectTests !== 'undefined' && Array.isArray(projectTests)) {
+        projectTests.forEach(t => {
+            if (t.status === 'em_andamento' && t.members && t.members.includes(memberId) && t.deadline) {
+                deadlines.push(t.deadline);
+            }
+        });
+    }
+    if (deadlines.length === 0) return null;
+    return deadlines.sort()[0];
 }
 
 // Função auxiliar de cores

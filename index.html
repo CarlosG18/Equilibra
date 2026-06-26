@@ -207,22 +207,29 @@
                                     </div>
                                     <div id="overloadTextSummary" class="chart-summary"></div>
                                 </div>
+
+                                <div class="chart-below-cards">
+                                    <div class="dashboard-card">
+                                        <h3><i class="fas fa-user-check"></i> Mais disponíveis</h3>
+                                        <div id="mostAvailableMembers" class="mini-list"></div>
+                                    </div>
+
+                                    <div class="dashboard-card">
+                                        <h3><i class="fas fa-triangle-exclamation"></i> Estado de alerta</h3>
+                                        <div id="alertMembers" class="mini-list"></div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="dashboard-side">
-                                <div class="dashboard-card">
-                                    <h3><i class="fas fa-user-check"></i> Mais disponíveis</h3>
-                                    <div id="mostAvailableMembers" class="mini-list"></div>
-                                </div>
-
-                                <div class="dashboard-card">
-                                    <h3><i class="fas fa-triangle-exclamation"></i> Estado de alerta</h3>
-                                    <div id="alertMembers" class="mini-list"></div>
-                                </div>
-
                                 <div class="dashboard-card scrum-card">
                                     <h3><i class="fas fa-user-shield"></i> Scrum Masters</h3>
                                     <div id="scrumMastersList" class="mini-list"></div>
+                                </div>
+
+                                <div class="dashboard-card">
+                                    <h3><i class="fas fa-calendar-alt"></i> Próximos prazos</h3>
+                                    <div id="upcomingDeadlinesList" class="mini-list"></div>
                                 </div>
                             </div>
                         </div>
@@ -238,6 +245,7 @@
                                             <th>Atividades</th>
                                             <th>Sobrecarga</th>
                                             <th>Status</th>
+                                            <th>Libera em</th>
                                         </tr>
                                     </thead>
                                     <tbody id="membersWorkloadList"></tbody>
@@ -292,6 +300,7 @@
                                         <tr>
                                             <th>Projeto</th>
                                             <th>Pontos</th>
+                                            <th>Prazo</th>
                                             <th>Scrum Master</th>
                                             <th>Membros alocados</th>
                                             <th>Ações</th>
@@ -323,6 +332,7 @@
                                             <th>Projeto</th>
                                             <th>Membros alocados</th>
                                             <th>Carga</th>
+                                            <th>Prazo</th>
                                             <th>Status</th>
                                             <th>Ações</th>
                                         </tr>
@@ -380,6 +390,7 @@
                                             <th>Atividade</th>
                                             <th>Membro</th>
                                             <th>Pontos</th>
+                                            <th>Prazo</th>
                                             <th>Status</th>
                                             <th>Ações</th>
                                         </tr>
@@ -467,6 +478,25 @@
                             placeholder="Descreva o projeto"></textarea>
                     </div>
                     <div class="form-group">
+                        <label><i class="fas fa-calendar-alt"></i> Prazo de entrega</label>
+                        <div class="deadline-picker">
+                            <div class="deadline-mode-toggle">
+                                <button type="button" class="deadline-mode-btn active" data-mode="date"><i class="fas fa-calendar-day"></i> Data</button>
+                                <button type="button" class="deadline-mode-btn" data-mode="sprint"><i class="fas fa-flag-checkered"></i> Sprints</button>
+                            </div>
+                            <div class="deadline-panel-date">
+                                <input type="date" id="projectDeadline" class="form-control">
+                            </div>
+                            <div class="deadline-panel-sprint" style="display:none;">
+                                <div class="sprint-input-row">
+                                    <input type="number" class="form-control deadline-sprint-qty" min="1" max="52" placeholder="Quantidade de sprints">
+                                    <span class="sprint-unit">× 2 sem.</span>
+                                </div>
+                                <small class="deadline-sprint-preview"></small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label for="overloadPoints"><i class="fas fa-weight-hanging"></i> Pontos de sobrecarga
                             (1-10)</label>
                         <input type="range" id="overloadPoints" class="form-control" min="1" max="10" value="5">
@@ -522,6 +552,26 @@
                             <option value="em_andamento">Em andamento (gera carga)</option>
                             <option value="concluido">Concluído (histórico)</option>
                         </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-alt"></i> Prazo do teste</label>
+                        <div class="deadline-picker">
+                            <div class="deadline-mode-toggle">
+                                <button type="button" class="deadline-mode-btn active" data-mode="date"><i class="fas fa-calendar-day"></i> Data</button>
+                                <button type="button" class="deadline-mode-btn" data-mode="sprint"><i class="fas fa-flag-checkered"></i> Sprints</button>
+                            </div>
+                            <div class="deadline-panel-date">
+                                <input type="date" id="testDeadline" class="form-control">
+                            </div>
+                            <div class="deadline-panel-sprint" style="display:none;">
+                                <div class="sprint-input-row">
+                                    <input type="number" class="form-control deadline-sprint-qty" min="1" max="52" placeholder="Quantidade de sprints">
+                                    <span class="sprint-unit">× 2 sem.</span>
+                                </div>
+                                <small class="deadline-sprint-preview"></small>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -607,6 +657,25 @@
                             <option value="concluida">Concluída</option>
                             <option value="pendente">Pendente</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-alt"></i> Prazo da atividade</label>
+                        <div class="deadline-picker">
+                            <div class="deadline-mode-toggle">
+                                <button type="button" class="deadline-mode-btn active" data-mode="date"><i class="fas fa-calendar-day"></i> Data</button>
+                                <button type="button" class="deadline-mode-btn" data-mode="sprint"><i class="fas fa-flag-checkered"></i> Sprints</button>
+                            </div>
+                            <div class="deadline-panel-date">
+                                <input type="date" id="activityDeadline" class="form-control">
+                            </div>
+                            <div class="deadline-panel-sprint" style="display:none;">
+                                <div class="sprint-input-row">
+                                    <input type="number" class="form-control deadline-sprint-qty" min="1" max="52" placeholder="Quantidade de sprints">
+                                    <span class="sprint-unit">× 2 sem.</span>
+                                </div>
+                                <small class="deadline-sprint-preview"></small>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="modal-footer">
