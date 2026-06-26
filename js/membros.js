@@ -107,6 +107,11 @@ function buildOverloadBreakdown(memberId) {
         });
     }
 
+    const member = members.find(m => m.id === memberId);
+    if (member && member.role && member.role.toLowerCase().includes('gerente')) {
+        lines.push({ label: 'Bônus de Gerência', pts: 5, icon: 'fa-user-tie', type: 'cargo' });
+    }
+
     return lines;
 }
 
@@ -121,6 +126,7 @@ function buildOverloadTooltipHtml(memberId) {
         sm:       '#0787cb',
         activity: '#fc9c14',
         test:     '#5bb0e0',
+        cargo:    '#7c3aed',
     };
 
     const rows = lines.map(l => `

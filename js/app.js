@@ -136,7 +136,7 @@ function calculateOverload() {
         projectTests.forEach(test => {
             if (test.status === 'em_andamento') {
                 const points = parseInt(test.overload_points) || 0;
-                
+
                 // Itera sobre os membros do teste
                 if (test.members && Array.isArray(test.members)) {
                     test.members.forEach(mId => {
@@ -149,6 +149,13 @@ function calculateOverload() {
             }
         });
     }
+
+    // 4. Bônus de cargo: Gerente recebe +5 pontos pela responsabilidade de gerência
+    members.forEach(m => {
+        if (m.role && m.role.toLowerCase().includes('gerente')) {
+            m.overload += 5;
+        }
+    });
 }
 
 
