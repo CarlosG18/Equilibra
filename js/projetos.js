@@ -140,53 +140,72 @@ async function _salvarEdicaoProjeto(id, name, desc, points, selectedMembers, dea
 // REDENRIZAÇÃO
 
 function renderProjects() {
-    const container = document.getElementById('projectsList'); // Grid de projetos
+    const container = document.getElementById('projectsList');
     if (!container) return;
     container.innerHTML = '';
 
+    if (projects.length === 0) {
+        container.innerHTML = `
+            <div class="proj-empty">
+                <i class="fas fa-diagram-project"></i>
+                <p>Nenhum projeto cadastrado ainda.</p>
+                <button class="btn btn-success" onclick="openModal('modalProject')">
+                    <i class="fas fa-plus"></i> Criar primeiro projeto
+                </button>
+            </div>
+        `;
+        return;
+    }
+
     projects.forEach(proj => {
-        // Obter nome do SM
         const sm = members.find(m => m.id === proj.scrum_master);
-        const smName = sm ? sm.name : 'Não definido';
-
-        // Obter nomes da equipe
         const teamIds = proj.allocated_members || [];
-        const teamHtml = teamIds.map(id => {
-            const m = members.find(mem => mem.id === id);
-            return m ? `<span class="member-tag">${m.name}</span>` : '';
-        }).join('');
+        const overloadClass = getOverloadClassForMember(proj.overload_points);
+        const fillPct = Math.min(100, (proj.overload_points || 0) * 10);
 
-        const div = document.createElement('tr');
-        div.className = 'project-card';
-        div.innerHTML = `
-            <td>
-                <strong>${proj.name}</strong><br>
-                <small style="color: var(--gray);">${proj.description}</small>
-            </td>
-            <td>
-                <span class="overload-indicator ${getOverloadClassForMember(proj.overload_points)}">
-                    ${proj.overload_points} pontos
-                </span>
-            </td>
-            <td style="white-space: nowrap;">${formatDeadlineCountdown(proj.deadline)}</td>
-            <td>
-                ${sm ?
-                `<span class="scrum-indicator">${smName}</span>` :
-                '<span style="color: var(--gray); font-style: italic;">Não definido</span>'}
-            </td>
-            <td>${teamHtml || 'Nenhum membro alocado'}</td>
-            <td>
-                <div class="action-buttons">
-                    <button class="btn btn-info btn-extra-small" onclick="editProject('${proj.id}'); openModal('modalProject')">
-                        <i class="fas fa-edit"></i> Editar
-                    </button>
-                    <button class="btn btn-danger btn-extra-small" onclick="confirmDelete('project', '${proj.id}', '${proj.name.replace(/'/g, "\\'")}')">
-                        <i class="fas fa-trash"></i> Remover
-                    </button>
+        const memberNames = teamIds
+            .map(id => { const m = members.find(mem => mem.id === id); return m ? m.name : null; })
+            .filter(Boolean);
+
+        const card = document.createElement('div');
+        card.className = `proj-card ${overloadClass}`;
+        card.innerHTML = `
+            <div class="proj-card-bar">
+                <div class="proj-card-bar-fill" style="width:${fillPct}%"></div>
+            </div>
+            <div class="proj-card-body">
+                <div class="proj-card-header">
+                    <p class="proj-card-name">${proj.name}</p>
+                    <span class="proj-card-pts">${proj.overload_points || 0} pts</span>
                 </div>
-            </td>
-            `;
-        container.appendChild(div);
+                ${proj.description ? `<p class="proj-card-desc">${proj.description}</p>` : ''}
+                <div class="proj-card-meta">
+                    ${sm
+                        ? `<span class="proj-meta-item"><i class="fas fa-user-shield"></i>${sm.name}</span>`
+                        : `<span class="proj-meta-item proj-meta-empty"><i class="fas fa-user-shield"></i>Sem SM</span>`}
+                    <span class="proj-meta-item proj-meta-members ${teamIds.length === 0 ? 'proj-meta-empty' : ''}">
+                        <i class="fas fa-users"></i>${teamIds.length > 0 ? `${teamIds.length} membro${teamIds.length !== 1 ? 's' : ''}` : 'Sem equipe'}
+                    </span>
+                </div>
+                <div class="proj-card-footer">
+                    <div class="proj-card-deadline">${formatDeadlineCountdown(proj.deadline)}</div>
+                    <div class="proj-card-actions">
+                        <button class="btn btn-info btn-extra-small" onclick="editProject('${proj.id}'); openModal('modalProject')">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button class="btn btn-danger btn-extra-small" onclick="confirmDelete('project', '${proj.id}', '${proj.name.replace(/'/g, "\\'")}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        if (memberNames.length > 0) {
+            card.querySelector('.proj-meta-members').dataset.tooltip = memberNames.join('\n');
+        }
+
+        container.appendChild(card);
     });
 }
 
