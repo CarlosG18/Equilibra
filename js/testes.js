@@ -75,6 +75,7 @@ function renderTests() {
             <td>${t.projectName}</td>
             <td><small>${memberNames || 'Ninguém'}</small></td>
             <td>${t.overload_points} pts</td>
+            <td style="white-space: nowrap;">${formatDeadlineCountdown(t.deadline)}</td>
             <td>${statusBadge}</td>
             <td>
                 <div style="display:flex; align-items:center;">
@@ -97,7 +98,9 @@ async function createTest(event) {
     const name = document.getElementById('testName').value;
     const points = document.getElementById('testPoints').value;
     const status = document.getElementById('testStatus').value;
-    
+    const deadlineInput = document.getElementById('testDeadline');
+    const deadline = deadlineInput ? deadlineInput.value : '';
+
     // Pega todos os checkboxes marcados
     const checks = document.querySelectorAll('.tm-check:checked');
 
@@ -112,11 +115,12 @@ async function createTest(event) {
     // CORREÇÃO: Usamos _supabase
     const { data: testData, error } = await _supabase
         .from('project_tests')
-        .insert({ 
-            project_id: projectId, 
-            name: name, 
-            overload_points: parseInt(points), 
-            status: status 
+        .insert({
+            project_id: projectId,
+            name: name,
+            overload_points: parseInt(points),
+            status: status,
+            deadline: deadline || null
         })
         .select()
         .single();
@@ -149,6 +153,7 @@ async function createTest(event) {
     
     // Limpa o formulário
     document.getElementById('testForm').reset();
+    resetDeadlinePicker('testDeadline');
     if(document.getElementById('testPointsVal')) {
         document.getElementById('testPointsVal').textContent = '3'; 
     }

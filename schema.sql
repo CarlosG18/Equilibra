@@ -87,6 +87,14 @@ CREATE INDEX idx_project_tests_project_id  ON project_tests(project_id);
 CREATE INDEX idx_project_tests_status      ON project_tests(status);
 
 -- ==========================================
+-- MIGRAÇÕES: adicionar coluna deadline nas tabelas
+-- Execute no SQL Editor do Supabase se as tabelas já existirem
+-- ==========================================
+ALTER TABLE projects          ADD COLUMN IF NOT EXISTS deadline DATE;
+ALTER TABLE extra_activities  ADD COLUMN IF NOT EXISTS deadline DATE;
+ALTER TABLE project_tests     ADD COLUMN IF NOT EXISTS deadline DATE;
+
+-- ==========================================
 -- ROW LEVEL SECURITY (opcional — ative se quiser
 -- que cada usuário veja apenas seus próprios dados)
 -- ==========================================

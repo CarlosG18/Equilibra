@@ -78,6 +78,8 @@ if (projectForm) {
         const desc = descInput ? descInput.value : '';
         const pointsInput = document.getElementById('overloadPoints') || document.getElementById('projectPoints');
         const points = pointsInput ? pointsInput.value : 0;
+        const deadlineInput = document.getElementById('projectDeadline');
+        const deadline = deadlineInput ? deadlineInput.value : '';
 
         const selectedMembers = [];
         document.querySelectorAll('input[name="projectMembers"]:checked').forEach(cb => {
@@ -91,9 +93,9 @@ if (projectForm) {
 
         try {
             if (editingProjectId) {
-                await _salvarEdicaoProjeto(editingProjectId, name, desc, points, selectedMembers);
+                await _salvarEdicaoProjeto(editingProjectId, name, desc, points, selectedMembers, deadline);
             } else {
-                await _criarProjeto(name, desc, points, selectedMembers, this);
+                await _criarProjeto(name, desc, points, selectedMembers, this, deadline);
             }
         } catch (err) {
             console.error("Erro no processamento:", err);
@@ -107,8 +109,8 @@ if (projectForm) {
     });
 }
 
-async function _criarProjeto(name, desc, points, selectedMembers, form) {
-    const res = await ProjectService.adicionarProjeto(name, desc, points, null, selectedMembers);
+async function _criarProjeto(name, desc, points, selectedMembers, form, deadline) {
+    const res = await ProjectService.adicionarProjeto(name, desc, points, null, selectedMembers, deadline);
     if (res.success) {
         projects.push(res.data);
         showFloatingAlert('Projeto criado com sucesso!');
@@ -119,11 +121,11 @@ async function _criarProjeto(name, desc, points, selectedMembers, form) {
     }
 }
 
-async function _salvarEdicaoProjeto(id, name, desc, points, selectedMembers) {
+async function _salvarEdicaoProjeto(id, name, desc, points, selectedMembers, deadline) {
     const originalProject = projects.find(p => p.id === id);
     const currentScrumMasterId = originalProject ? originalProject.scrum_master : null;
 
-    const res = await ProjectService.atualizarProjeto(id, name, desc, points, currentScrumMasterId, selectedMembers);
+    const res = await ProjectService.atualizarProjeto(id, name, desc, points, currentScrumMasterId, selectedMembers, deadline);
     if (res.success) {
         const index = projects.findIndex(p => p.id === id);
         if (index !== -1) projects[index] = res.data;
@@ -166,6 +168,7 @@ function renderProjects() {
                     ${proj.overload_points} pontos
                 </span>
             </td>
+            <td style="white-space: nowrap;">${formatDeadlineCountdown(proj.deadline)}</td>
             <td>
                 ${sm ?
                 `<span class="scrum-indicator">${smName}</span>` :
@@ -240,6 +243,11 @@ function editProject(id) {
     const pointsVal = project.overload_points || 0;
     const pointsInput = document.getElementById('overloadPoints'); // ou 'projectPoints' dependendo do seu HTML
     if (pointsInput) pointsInput.value = pointsVal;
+
+    // Prazo — garante modo "data" ao preencher via edição
+    resetDeadlinePicker('projectDeadline');
+    const deadlineInput = document.getElementById('projectDeadline');
+    if (deadlineInput) deadlineInput.value = project.deadline || '';
     
     // Atualiza o texto do slider
     const pointsDisplay = document.getElementById('pointsValue');
@@ -283,6 +291,7 @@ function resetProjectFormState() {
         form.reset();
         const hiddenId = document.getElementById('projectId');
         if (hiddenId) hiddenId.value = '';
+        resetDeadlinePicker('projectDeadline');
     }
 
     const submitBtn = document.querySelector('#projectForm button[type="submit"]');

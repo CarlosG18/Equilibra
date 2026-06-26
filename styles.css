@@ -827,6 +827,13 @@ body {
     min-width: 220px;
 }
 
+.chart-below-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 20px;
+}
+
 /* Mini listas do dashboard */
 .mini-list {
     display: flex;
@@ -1481,6 +1488,64 @@ input[type="range"].form-control::-moz-range-thumb {
     font-variant-numeric: tabular-nums;
 }
 
+/* ===================== Deadline Picker (data/sprints) ===================== */
+.deadline-mode-toggle {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.deadline-mode-btn {
+    flex: 1;
+    padding: 7px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text-2);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.deadline-mode-btn:hover {
+    background: var(--bg);
+    border-color: var(--brand);
+    color: var(--brand);
+}
+
+.deadline-mode-btn.active {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+}
+
+.sprint-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sprint-unit {
+    white-space: nowrap;
+    font-size: 0.85rem;
+    color: var(--text-3);
+    font-weight: 500;
+}
+
+.deadline-sprint-preview {
+    display: block;
+    margin-top: 6px;
+    color: var(--brand);
+    font-size: 0.82rem;
+    font-weight: 600;
+    min-height: 1em;
+}
+
 /* ===================== Checkboxes ===================== */
 .checkbox-group {
     display: grid;
@@ -2020,6 +2085,10 @@ tr.member-card:hover {
     .chart-canvas-wrap {
         width: 200px;
         height: 200px;
+    }
+
+    .chart-below-cards {
+        grid-template-columns: 1fr;
     }
 
     .header-actions {

@@ -11,6 +11,8 @@ if (activityForm) {
         const description = document.getElementById('activityDescription').value;
         const points = document.getElementById('activityPoints').value;
         const status = document.getElementById('activityStatus').value;
+        const deadlineInput = document.getElementById('activityDeadline');
+        const deadline = deadlineInput ? deadlineInput.value : '';
 
         // --- MUDANÇA: COLETAR CHECKBOXES ---
         const selectedMembers = [];
@@ -35,7 +37,7 @@ if (activityForm) {
             if (editingActivityId) {
                 // ATUALIZAR
                 res = await ProjectService.atualizarAtividade(
-                    editingActivityId, name, description, selectedMembers, points, status
+                    editingActivityId, name, description, selectedMembers, points, status, deadline
                 );
                 
                 if (res.success) {
@@ -49,7 +51,7 @@ if (activityForm) {
             } else {
                 // CRIAR
                 res = await ProjectService.adicionarAtividade(
-                    name, description, selectedMembers, points, status
+                    name, description, selectedMembers, points, status, deadline
                 );
 
                 if (res.success) {
@@ -161,6 +163,7 @@ function renderActivities() {
                     ${activity.points} pts
                 </span>
             </td>
+            <td style="white-space: nowrap;">${formatDeadlineCountdown(activity.deadline)}</td>
             <td>
                 <span class="${statusClass}">${statusText}</span>
             </td>
@@ -193,6 +196,9 @@ function editActivity(id) {
     document.getElementById('activityPoints').value = activity.points;
     document.getElementById('activityStatus').value = activity.status;
     document.getElementById('activityPointsValue').textContent = `${activity.points} pontos`;
+    resetDeadlinePicker('activityDeadline');
+    const deadlineInput = document.getElementById('activityDeadline');
+    if (deadlineInput) deadlineInput.value = activity.deadline || '';
 
     // --- PREENCHER CHECKBOXES ---
     // Reseta primeiro
@@ -223,6 +229,7 @@ function editActivity(id) {
 function cancelActivityEdit() {
     editingActivityId = null;
     document.getElementById('activityForm').reset();
+    resetDeadlinePicker('activityDeadline');
     
     // Reseta checkboxes
     updateActivityAllocationCheckboxes(); 

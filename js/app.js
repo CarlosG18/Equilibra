@@ -418,6 +418,109 @@ if (btnCancelActivity) {
     btnCancelActivity.addEventListener('click', cancelActivityEdit);
 }
 
+// Retorna HTML colorido com contagem de sprints (ou dias para prazos curtos) até o prazo
+function formatDeadlineCountdown(deadline) {
+    if (!deadline) return '<span style="color:#aaa; font-size:0.85em;">—</span>';
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const d = new Date(deadline + 'T00:00:00');
+    const diff = Math.round((d - today) / (1000 * 60 * 60 * 24));
+
+    if (diff < 0) {
+        const absDiff = Math.abs(diff);
+        const label = absDiff >= SPRINT_DAYS ? _sprintLabel(absDiff) : `${absDiff}d`;
+        return `<span style="color:#e23d28; font-size:0.82em; font-weight:bold;"><i class="fas fa-exclamation-circle"></i> Vencido (${label})</span>`;
+    }
+    if (diff === 0) return `<span style="color:#e23d28; font-weight:bold;"><i class="fas fa-bell"></i> Hoje!</span>`;
+    if (diff <= 3)  return `<span style="color:#e23d28; font-size:0.85em;"><i class="fas fa-clock"></i> ${diff}d</span>`;
+    if (diff <= 7)  return `<span style="color:#fc9c14; font-size:0.85em;"><i class="fas fa-clock"></i> ${diff}d</span>`;
+    if (diff < SPRINT_DAYS) return `<span style="color:#fc9c14; font-size:0.85em;"><i class="fas fa-clock"></i> ${diff}d</span>`;
+    return `<span style="color:#0787cb; font-size:0.85em;"><i class="fas fa-flag-checkered"></i> ${_sprintLabel(diff)}</span>`;
+}
+
+function _sprintLabel(days) {
+    const s = days / SPRINT_DAYS;
+    const rounded = Math.round(s * 10) / 10;
+    const label = rounded % 1 === 0 ? rounded.toString() : rounded.toFixed(1);
+    return `${label} sprint${rounded !== 1 ? 's' : ''}`;
+}
+
+// ===================== Deadline Picker (data/sprints) =====================
+const SPRINT_DAYS = 14; // 1 sprint = 2 semanas
+
+function _formatDateBR(iso) {
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+}
+
+function initDeadlinePickers() {
+    document.querySelectorAll('.deadline-picker').forEach(picker => {
+        const dateInput    = picker.querySelector('input[type="date"]');
+        const sprintInput  = picker.querySelector('.deadline-sprint-qty');
+        const preview      = picker.querySelector('.deadline-sprint-preview');
+        const panelDate    = picker.querySelector('.deadline-panel-date');
+        const panelSprint  = picker.querySelector('.deadline-panel-sprint');
+        const btns         = picker.querySelectorAll('.deadline-mode-btn');
+
+        if (!dateInput) return;
+
+        btns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                btns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                if (btn.dataset.mode === 'date') {
+                    panelDate.style.display   = '';
+                    panelSprint.style.display = 'none';
+                } else {
+                    panelDate.style.display   = 'none';
+                    panelSprint.style.display = '';
+                    if (sprintInput.value) _calcSprintDate(sprintInput, dateInput, preview);
+                }
+            });
+        });
+
+        sprintInput.addEventListener('input', () => {
+            _calcSprintDate(sprintInput, dateInput, preview);
+        });
+    });
+}
+
+function _calcSprintDate(sprintInput, dateInput, preview) {
+    const n = parseInt(sprintInput.value);
+    if (!n || n < 1) {
+        dateInput.value  = '';
+        preview.textContent = '';
+        return;
+    }
+    const date = new Date();
+    date.setDate(date.getDate() + n * SPRINT_DAYS);
+    const iso = date.toISOString().split('T')[0];
+    dateInput.value     = iso;
+    preview.textContent = `Prazo: ${_formatDateBR(iso)} (${n} sprint${n > 1 ? 's' : ''})`;
+}
+
+function resetDeadlinePicker(dateInputId) {
+    const dateInput = document.getElementById(dateInputId);
+    if (!dateInput) return;
+    const picker = dateInput.closest('.deadline-picker');
+    if (!picker) return;
+
+    const btns        = picker.querySelectorAll('.deadline-mode-btn');
+    const panelDate   = picker.querySelector('.deadline-panel-date');
+    const panelSprint = picker.querySelector('.deadline-panel-sprint');
+    const sprintInput = picker.querySelector('.deadline-sprint-qty');
+    const preview     = picker.querySelector('.deadline-sprint-preview');
+
+    btns.forEach((b, i) => b.classList.toggle('active', i === 0));
+    panelDate.style.display   = '';
+    panelSprint.style.display = 'none';
+    dateInput.value           = '';
+    if (sprintInput)  sprintInput.value  = '';
+    if (preview)      preview.textContent = '';
+}
+
+document.addEventListener('DOMContentLoaded', initDeadlinePickers);
+
 // Função auxiliar (caso não tenha)
 function getInitials(name) {
     if (!name) return '?';

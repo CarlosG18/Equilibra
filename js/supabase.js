@@ -107,15 +107,16 @@ const ProjectService = {
     // --- 3. CRUD DE PROJETOS (Com Correção de Scrum Master) ---
     // ==========================================
 
-    async adicionarProjeto(name, description, overloadPoints, scrumMasterId, allocatedMembersIds) {
+    async adicionarProjeto(name, description, overloadPoints, scrumMasterId, allocatedMembersIds, deadline) {
         const { data, error } = await _supabase
             .from('projects')
-            .insert([{ 
-                name, 
-                description, 
-                overload_points: parseInt(overloadPoints), 
-                scrum_master: scrumMasterId || null, // Garante NULL se vier vazio
-                allocated_members: allocatedMembersIds // Array de UUIDs
+            .insert([{
+                name,
+                description,
+                overload_points: parseInt(overloadPoints),
+                scrum_master: scrumMasterId || null,
+                allocated_members: allocatedMembersIds,
+                deadline: deadline || null
             }])
             .select();
 
@@ -123,15 +124,14 @@ const ProjectService = {
         return { success: true, data: data[0] };
     },
 
-    // AQUI ESTÁ A ATUALIZAÇÃO IMPORTANTE
-    async atualizarProjeto(id, name, description, overloadPoints, scrumMasterId, allocatedMembersIds) {
-        // Prepara o objeto de update garantindo a associação correta
-        const updateData = { 
-            name, 
-            description, 
-            overload_points: parseInt(overloadPoints), 
-            scrum_master: scrumMasterId || null, // Se vier string vazia "", salva como NULL
-            allocated_members: allocatedMembersIds
+    async atualizarProjeto(id, name, description, overloadPoints, scrumMasterId, allocatedMembersIds, deadline) {
+        const updateData = {
+            name,
+            description,
+            overload_points: parseInt(overloadPoints),
+            scrum_master: scrumMasterId || null,
+            allocated_members: allocatedMembersIds,
+            deadline: deadline || null
         };
 
         const { data, error } = await _supabase
@@ -167,16 +167,16 @@ const ProjectService = {
     // ==========================================
 
     // CRIAR
-    async adicionarAtividade(name, description, memberIds, points, status) {
-        // memberIds deve ser um ARRAY de strings (UUIDs)
+    async adicionarAtividade(name, description, memberIds, points, status, deadline) {
         const { data, error } = await _supabase
             .from('extra_activities')
-            .insert([{ 
-                name, 
-                description, 
-                allocated_members: memberIds, // <--- Mudou aqui (Array)
+            .insert([{
+                name,
+                description,
+                allocated_members: memberIds,
                 points: parseInt(points),
-                status: status || 'ativa'
+                status: status || 'ativa',
+                deadline: deadline || null
             }])
             .select();
 
@@ -185,15 +185,16 @@ const ProjectService = {
     },
 
     // ATUALIZAR
-    async atualizarAtividade(id, name, description, memberIds, points, status) {
+    async atualizarAtividade(id, name, description, memberIds, points, status, deadline) {
         const { data, error } = await _supabase
             .from('extra_activities')
-            .update({ 
-                name, 
-                description, 
-                allocated_members: memberIds, // <--- Mudou aqui
+            .update({
+                name,
+                description,
+                allocated_members: memberIds,
                 points: parseInt(points),
-                status: status
+                status: status,
+                deadline: deadline || null
             })
             .eq('id', id)
             .select();
