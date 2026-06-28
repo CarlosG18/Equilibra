@@ -70,6 +70,7 @@ function updateFullInterface() {
     updateDashboard();
     renderScrumMasters();
     renderActivities();
+    if (typeof renderAnalises === 'function') renderAnalises();
 }
 
 // ==========================================
@@ -337,6 +338,9 @@ function setupTabNavigation() {
             else if (tabId === 'tests') {
                 if(typeof updateTestUIHelpers === 'function') updateTestUIHelpers();
                 if(typeof renderTests === 'function') renderTests();
+            }
+            else if (tabId === 'analises') {
+                if(typeof renderAnalises === 'function') renderAnalises();
             }
         });
     });
