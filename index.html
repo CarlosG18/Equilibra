@@ -83,6 +83,13 @@
                             <i class="fas fa-list-check"></i><span>Atividades Extras</span>
                         </button>
                     </div>
+
+                    <div class="nav-group">
+                        <span class="nav-group-label">Planejamento</span>
+                        <button class="tab-button nav-item" data-tab="analises" data-title="Análises">
+                            <i class="fas fa-chart-line"></i><span>Análises</span>
+                        </button>
+                    </div>
                 </nav>
 
                 <div class="sidebar-foot">
@@ -390,6 +397,58 @@
                         </div>
                     </section>
 
+                    <!-- ==================== Análises ==================== -->
+                    <section id="analises" class="tab-content">
+                        <div class="header-actions">
+                            <div class="header-actions-text">
+                                <h2><i class="fas fa-chart-line"></i> Análises de capacidade</h2>
+                                <p>Com base na carga atual dos membros, veja quais projetos futuros a equipe consegue absorver.</p>
+                            </div>
+                            <div class="analysis-threshold">
+                                <label for="analysisThreshold"><i class="fas fa-sliders"></i> Considerar livre quem está</label>
+                                <select id="analysisThreshold" class="form-control" onchange="renderAnalises()">
+                                    <option value="10" selected>Disponível (&lt; 10 pts)</option>
+                                    <option value="15">Disponível + Atenção (&lt; 15 pts)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Capacidade atual da equipe -->
+                        <div class="kpi-grid" id="analysisCapacity"></div>
+
+                        <!-- Cenários de projetos futuros (situação ATUAL) -->
+                        <div class="card">
+                            <h2><i class="fas fa-diagram-project"></i> Cenários de projetos — hoje</h2>
+                            <p style="color: var(--text-2,#5b6273); font-size: 0.88em; margin-top: -6px; margin-bottom: 16px;">
+                                Cada cenário exige um número de frontends e backends livres. A projeção indica se a equipe
+                                tem folga para assumir o projeto <strong>agora</strong> e quais membros seriam os mais indicados.
+                            </p>
+                            <div class="analysis-grid" id="analysisScenarios"></div>
+                        </div>
+
+                        <!-- Projeção mensal por produto fixo -->
+                        <div class="card">
+                            <h2><i class="fas fa-calendar-days"></i> Projeção mensal por produto</h2>
+                            <p style="color: var(--text-2,#5b6273); font-size: 0.88em; margin-top: -6px; margin-bottom: 16px;">
+                                Escolha um produto e veja, mês a mês, quando a equipe terá folga para assumi-lo.
+                                À medida que projetos, atividades e testes <strong>vencem o prazo</strong>, os membros
+                                alocados são liberados e a capacidade aumenta.
+                            </p>
+                            <div class="analysis-product-tabs" id="analysisProductTabs"></div>
+                            <div class="analysis-months" id="analysisMonths"></div>
+                        </div>
+
+                        <!-- Simulação de entrada (what-if, sem salvar) -->
+                        <div class="card">
+                            <h2><i class="fas fa-flask"></i> Simular entrada do projeto</h2>
+                            <p style="color: var(--text-2,#5b6273); font-size: 0.88em; margin-top: -6px; margin-bottom: 16px;">
+                                Veja como ficaria a carga da equipe <strong>se este projeto entrasse</strong> num determinado mês.
+                                É apenas uma simulação — <strong>nada é salvo</strong> nem aplicado aos dados reais.
+                            </p>
+                            <div class="analysis-sim" id="analysisSim"></div>
+                        </div>
+                    </section>
+
                     <footer class="app-footer">
                         <img src="assets/eject_labs_logo.svg" alt="EJECT LABS" class="eject-logo eject-logo-footer">
                         <p>Equilibra — Sistema de gerenciamento de sobrecarga de projetos &copy; 2025</p>
@@ -431,6 +490,17 @@
                             <option value="frontend">Frontend</option>
                             <option value="backend">Backend</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="memberMaterias"><i class="fas fa-book"></i> Matérias no semestre</label>
+                        <input type="number" id="memberMaterias" class="form-control" min="0" max="20" placeholder="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-briefcase"></i> Situação de trabalho</label>
+                        <label class="checkbox-label" style="margin-top:6px;display:flex;align-items:center;gap:8px;cursor:pointer;">
+                            <input type="checkbox" id="memberTrabalho">
+                            <span>Está empregado / trabalhando</span>
+                        </label>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-warning" id="memberCancelBtn" style="display: none;">
@@ -474,7 +544,7 @@
                             <div class="deadline-panel-sprint" style="display:none;">
                                 <div class="sprint-input-row">
                                     <input type="number" class="form-control deadline-sprint-qty" min="1" max="52" placeholder="Quantidade de sprints">
-                                    <span class="sprint-unit">× 2 sem.</span>
+                                    <span class="sprint-unit">× 1 sem.</span>
                                 </div>
                                 <small class="deadline-sprint-preview"></small>
                             </div>
@@ -551,7 +621,7 @@
                             <div class="deadline-panel-sprint" style="display:none;">
                                 <div class="sprint-input-row">
                                     <input type="number" class="form-control deadline-sprint-qty" min="1" max="52" placeholder="Quantidade de sprints">
-                                    <span class="sprint-unit">× 2 sem.</span>
+                                    <span class="sprint-unit">× 1 sem.</span>
                                 </div>
                                 <small class="deadline-sprint-preview"></small>
                             </div>
@@ -655,7 +725,7 @@
                             <div class="deadline-panel-sprint" style="display:none;">
                                 <div class="sprint-input-row">
                                     <input type="number" class="form-control deadline-sprint-qty" min="1" max="52" placeholder="Quantidade de sprints">
-                                    <span class="sprint-unit">× 2 sem.</span>
+                                    <span class="sprint-unit">× 1 sem.</span>
                                 </div>
                                 <small class="deadline-sprint-preview"></small>
                             </div>
@@ -709,6 +779,7 @@
     <script src="js/projetos.js"></script>
     <script src="js/scrum.js"></script>
     <script src="js/testes.js"></script>
+    <script src="js/analises.js"></script>
     <script src="js/modal.js"></script>
     <script src="js/ui.js"></script>
 

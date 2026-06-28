@@ -150,13 +150,7 @@ async function createTest(event) {
     }
 
     showFloatingAlert('Teste criado com sucesso!', 'success');
-    
-    // Limpa o formulário
-    document.getElementById('testForm').reset();
-    resetDeadlinePicker('testDeadline');
-    if(document.getElementById('testPointsVal')) {
-        document.getElementById('testPointsVal').textContent = '3'; 
-    }
+    closeModal('modalTest');
     
     // Recarrega a lista
     await loadTests();

@@ -70,6 +70,7 @@ function updateFullInterface() {
     updateDashboard();
     renderScrumMasters();
     renderActivities();
+    if (typeof renderAnalises === 'function') renderAnalises();
 }
 
 // ==========================================
@@ -100,7 +101,7 @@ function calculateOverload() {
         if (smId) {
             const sm = members.find(m => m.id === smId);
             if (sm) {
-                const smPoints = Math.max(1, Math.round(points * 0.4));
+                const smPoints = Math.max(1, Math.round(points * 0.4)) + 2;
                 sm.overload += smPoints;
             }
         }
@@ -136,7 +137,7 @@ function calculateOverload() {
         projectTests.forEach(test => {
             if (test.status === 'em_andamento') {
                 const points = parseInt(test.overload_points) || 0;
-                
+
                 // Itera sobre os membros do teste
                 if (test.members && Array.isArray(test.members)) {
                     test.members.forEach(mId => {
@@ -149,6 +150,20 @@ function calculateOverload() {
             }
         });
     }
+
+    // 4. Bônus de cargo: Gerente recebe +5 pontos pela responsabilidade de gerência
+    members.forEach(m => {
+        if (m.role && m.role.toLowerCase().includes('gerente')) {
+            m.overload += 5;
+        }
+    });
+
+    // 5. Carga pessoal: trabalho (+4) e matérias (round(qtd × 0.5) — cada 2 matérias = 1 pt)
+    members.forEach(m => {
+        if (m.trabalho) m.overload += 4;
+        const mats = parseInt(m.num_materias) || 0;
+        if (mats > 0) m.overload += Math.round(mats * 0.5);
+    });
 }
 
 
@@ -324,6 +339,9 @@ function setupTabNavigation() {
                 if(typeof updateTestUIHelpers === 'function') updateTestUIHelpers();
                 if(typeof renderTests === 'function') renderTests();
             }
+            else if (tabId === 'analises') {
+                if(typeof renderAnalises === 'function') renderAnalises();
+            }
         });
     });
 
@@ -446,7 +464,7 @@ function _sprintLabel(days) {
 }
 
 // ===================== Deadline Picker (data/sprints) =====================
-const SPRINT_DAYS = 14; // 1 sprint = 2 semanas
+const SPRINT_DAYS = 7; // 1 sprint = 1 semana
 
 function _formatDateBR(iso) {
     const [y, m, d] = iso.split('-');

@@ -2328,3 +2328,494 @@ tr.member-card:hover {
         grid-template-columns: 1fr;
     }
 }
+
+/* ==========================================================================
+   ANÁLISES — capacidade da equipe e cenários de projeto
+   ========================================================================== */
+.analysis-threshold {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 230px;
+}
+.analysis-threshold label {
+    font-size: 0.78em;
+    font-weight: 600;
+    color: var(--text-2);
+}
+.analysis-threshold select {
+    padding: 8px 10px;
+    font-size: 0.9em;
+}
+
+.analysis-summary-note {
+    background: linear-gradient(135deg, #e9f4fc 0%, #f4f9fd 100%);
+    border: 1px solid #cfe6f6;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 18px;
+    color: #056aa1;
+    font-size: 0.92em;
+}
+.analysis-summary-note i {
+    color: #fc9c14;
+    margin-right: 4px;
+}
+
+.analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    gap: 18px;
+}
+
+.analysis-card {
+    background: #fff;
+    border: 1px solid #e6e9ef;
+    border-radius: 12px;
+    padding: 16px 18px;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.analysis-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+}
+.analysis-card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.analysis-card-title > i {
+    font-size: 1.4em;
+}
+.analysis-card-title strong {
+    display: block;
+    color: var(--dark-blue, #0a374e);
+    font-size: 1.02em;
+}
+.analysis-card-title small {
+    display: block;
+    color: var(--text-2);
+    font-size: 0.78em;
+    margin-top: 2px;
+}
+
+.analysis-status {
+    font-size: 0.78em;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.analysis-reqs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.analysis-req {
+    font-size: 0.82em;
+    font-weight: 600;
+    padding: 4px 10px;
+    border: 1px solid;
+    border-radius: 8px;
+}
+.analysis-req small {
+    font-weight: 500;
+    margin-left: 3px;
+}
+
+.analysis-missing,
+.analysis-ready {
+    font-size: 0.84em;
+    font-weight: 600;
+    padding: 7px 10px;
+    border-radius: 8px;
+}
+.analysis-missing {
+    background: #fdece9;
+    color: #a51d1d;
+}
+.analysis-ready {
+    background: #e6f7f0;
+    color: #0a7a52;
+}
+
+.analysis-team {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px dashed #e6e9ef;
+    padding-top: 10px;
+}
+.analysis-team-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+.analysis-team-label {
+    font-size: 0.78em;
+    font-weight: 700;
+    color: var(--text-2);
+    min-width: 48px;
+    padding-top: 3px;
+}
+.analysis-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    flex: 1;
+}
+.analysis-chip {
+    background: #f0f4f8;
+    border: 1px solid #e0e6ee;
+    border-radius: 16px;
+    padding: 3px 9px;
+    font-size: 0.8em;
+    color: #3a4658;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.analysis-chip strong {
+    color: #056aa1;
+    font-size: 0.92em;
+}
+
+@media (max-width: 640px) {
+    .analysis-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---- Projeção mensal por produto ---- */
+.analysis-product-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+.analysis-product-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 14px;
+    border: 1px solid #dfe4ec;
+    background: #fff;
+    border-radius: 10px;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--text-2);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.analysis-product-tab:hover {
+    border-color: #b9c2d0;
+    background: #f7f9fc;
+}
+.analysis-product-tab.active {
+    font-weight: 700;
+}
+.analysis-product-tab small {
+    font-size: 0.75em;
+    opacity: 0.65;
+    font-weight: 600;
+}
+
+.analysis-verdict {
+    background: #f7f9fc;
+    border-left: 4px solid #0787cb;
+    border-radius: 8px;
+    padding: 11px 14px;
+    margin-bottom: 16px;
+    font-size: 0.92em;
+    color: #3a4658;
+}
+.analysis-verdict i {
+    margin-right: 4px;
+}
+
+.analysis-months-track {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+}
+
+.analysis-month-card {
+    border: 1px solid #e6e9ef;
+    border-radius: 12px;
+    padding: 13px 14px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.analysis-month-card.is-viable {
+    border-color: #b6e6d2;
+    background: #f6fdfa;
+}
+
+.analysis-month-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+}
+.analysis-month-name {
+    font-weight: 700;
+    color: var(--dark-blue, #0a374e);
+    font-size: 0.95em;
+}
+.analysis-month-name small {
+    font-weight: 500;
+    color: var(--text-2);
+    font-size: 0.8em;
+}
+.analysis-month-status {
+    font-size: 0.74em;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.analysis-month-caps {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.analysis-month-caps span {
+    font-size: 0.84em;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.analysis-month-caps span i {
+    width: 14px;
+}
+.analysis-month-caps span.ok { color: #0a7a52; }
+.analysis-month-caps span.no { color: #a51d1d; }
+
+.analysis-month-ends {
+    border-top: 1px dashed #e6e9ef;
+    padding-top: 9px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.analysis-month-ended {
+    font-size: 0.78em;
+    color: #3a4658;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.analysis-month-ended i {
+    color: #0787cb;
+    width: 13px;
+}
+.analysis-month-ended small {
+    margin-left: auto;
+    color: #0a7a52;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.analysis-month-noend {
+    font-size: 0.76em;
+    color: #aab2bf;
+    font-style: italic;
+}
+
+/* ---- Fit-count nos cards mensais ---- */
+.analysis-month-fit {
+    font-size: 0.84em;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.analysis-month-fit strong {
+    font-size: 1.15em;
+}
+
+/* ---- Simulação "e se?" ---- */
+.analysis-sim-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    background: #f7f9fc;
+    border: 1px solid #e6e9ef;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.9em;
+    color: #3a4658;
+}
+.analysis-sim-controls label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: var(--text-2);
+}
+.analysis-sim-controls select {
+    padding: 6px 10px;
+    font-size: 0.95em;
+    width: auto;
+}
+
+.analysis-sim-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88em;
+}
+.analysis-sim-table th {
+    background: #f4f6fa;
+    color: var(--text-2);
+    font-size: 0.82em;
+    font-weight: 700;
+    padding: 9px 10px;
+    border-bottom: 1px solid #e6e9ef;
+}
+.analysis-sim-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid #eef1f5;
+    vertical-align: middle;
+}
+.analysis-area-tag {
+    font-size: 0.82em;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+/* ---- Teto máximo do mês + carrinho de simulação ---- */
+.analysis-teto {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+.analysis-teto-label {
+    font-size: 0.82em;
+    font-weight: 700;
+    color: var(--text-2);
+}
+.analysis-teto-chip {
+    font-size: 0.82em;
+    background: #fff;
+    border: 1px solid #e0e6ee;
+    border-radius: 16px;
+    padding: 3px 10px;
+    color: #3a4658;
+}
+.analysis-teto-chip strong {
+    color: #056aa1;
+}
+
+.analysis-basket {
+    border: 1px solid #e6e9ef;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-top: 12px;
+}
+.analysis-basket-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.analysis-basket-head strong {
+    color: var(--dark-blue, #0a374e);
+    font-size: 0.92em;
+}
+.analysis-basket-clear {
+    background: none;
+    border: 1px solid #dfe4ec;
+    border-radius: 8px;
+    padding: 4px 12px;
+    font-size: 0.82em;
+    color: var(--text-2);
+    cursor: pointer;
+}
+.analysis-basket-clear:hover {
+    background: #f7f9fc;
+    color: #a51d1d;
+    border-color: #f0c5c5;
+}
+
+.analysis-steppers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+}
+.analysis-stepper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    background: #f7f9fc;
+    border: 1px solid #eef1f5;
+    border-radius: 9px;
+    padding: 8px 12px;
+}
+.analysis-stepper-name {
+    font-size: 0.86em;
+    font-weight: 600;
+    color: #3a4658;
+    display: flex;
+    flex-direction: column;
+}
+.analysis-stepper-name small {
+    font-size: 0.78em;
+    font-weight: 500;
+    color: var(--text-2);
+    margin-top: 1px;
+}
+.analysis-stepper-ctrl {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.analysis-stepper-ctrl button {
+    width: 28px;
+    height: 28px;
+    border: 1px solid #d7dde6;
+    background: #fff;
+    border-radius: 7px;
+    font-size: 1.05em;
+    font-weight: 700;
+    color: #056aa1;
+    cursor: pointer;
+    line-height: 1;
+}
+.analysis-stepper-ctrl button:hover:not(:disabled) {
+    background: #eaf4fb;
+}
+.analysis-stepper-ctrl button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.analysis-stepper-ctrl > span {
+    min-width: 22px;
+    text-align: center;
+    font-weight: 700;
+    color: var(--dark-blue, #0a374e);
+}
+
+.analysis-sim-hint {
+    color: var(--text-2);
+    font-size: 0.88em;
+    margin-top: 14px;
+}
+.analysis-sim-hint i {
+    color: #0787cb;
+    margin-right: 4px;
+}
