@@ -9,6 +9,7 @@ let extraActivities = []; // Nota: No banco chama-se 'extra_activities'
 let editingMemberId = null;
 let editingProjectId = null;
 let editingActivityId = null;
+let editingTestId = null;
 let itemToDelete = null;
 let deleteType = null; // 'member', 'project', 'activity' ou 'scrum'
 

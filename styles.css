@@ -2477,6 +2477,100 @@ tr.member-card:hover {
     .kpi-grid {
         grid-template-columns: 1fr;
     }
+
+    .modal-content {
+        padding: 18px;
+    }
+}
+
+/* ===================== Atividades extras — mobile ===================== */
+@media (max-width: 640px) {
+    .sprint-input-row {
+        flex-wrap: wrap;
+    }
+
+    .deadline-mode-btn {
+        font-size: 0.78rem;
+        padding: 7px 8px;
+    }
+
+    .sprint-unit {
+        font-size: 0.8rem;
+    }
+
+    #activitiesTable thead {
+        display: none;
+    }
+
+    #activitiesTable,
+    #activitiesTable tbody {
+        display: block;
+        width: 100%;
+    }
+
+    #activitiesTable tr {
+        display: block;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-left: 4px solid var(--line-strong);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-xs);
+        margin-bottom: 12px;
+        padding: 4px 0;
+    }
+
+    #activitiesTable tr[data-status="ativa"] {
+        border-left-color: #2eae6c;
+    }
+
+    #activitiesTable tr[data-status="concluida"] {
+        border-left-color: #0787cb;
+    }
+
+    #activitiesTable tr[data-status="pendente"] {
+        border-left-color: #fc9c14;
+    }
+
+    #activitiesTable td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
+        padding: 10px 16px;
+        text-align: right;
+        border-bottom: 1px solid var(--line);
+    }
+
+    #activitiesTable td:last-child {
+        border-bottom: none;
+    }
+
+    #activitiesTable td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 0.78rem;
+        color: var(--text-3);
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    #activitiesTable td[data-label="Atividade"],
+    #activitiesTable td[data-label="Membro"] {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    #activitiesTable td[data-label="Atividade"]::before,
+    #activitiesTable td[data-label="Membro"]::before {
+        margin-bottom: 4px;
+    }
+
+    #activitiesTable td[data-label="Ações"] .action-buttons {
+        justify-content: flex-end;
+        width: 100%;
+    }
 }
 
 /* ==========================================================================

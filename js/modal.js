@@ -35,6 +35,10 @@ window.closeModal = function (modalId) {
         if (typeof editingMemberId !== 'undefined') editingMemberId = null;
         if (typeof editingProjectId !== 'undefined') editingProjectId = null;
         if (typeof editingActivityId !== 'undefined') editingActivityId = null;
+        if (typeof editingTestId !== 'undefined') editingTestId = null;
+        if (modalId === 'modalTest' && typeof resetTestFormState === 'function') {
+            resetTestFormState();
+        }
 
         // Reset de botões de salvar
         const btn = modal.querySelector('button[type="submit"]');
