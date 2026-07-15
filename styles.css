@@ -1010,6 +1010,156 @@ tbody tr:hover {
     border: 1px solid #f3e08f;
 }
 
+/* ===================== Composição mínima da equipe (badges) ===================== */
+.team-comp-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.team-comp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.78rem;
+    border: 1px solid transparent;
+}
+
+.badge-team-ok {
+    background: var(--blue-bg);
+    color: var(--blue-strong);
+    border-color: #c2e4f5;
+}
+
+.badge-team-missing {
+    background: var(--orange-bg);
+    color: var(--orange-ink);
+    border-color: #f8d9a6;
+}
+
+.team-comp-status {
+    margin-top: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.82rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.team-comp-status-ok {
+    background: var(--blue-bg);
+    color: var(--blue-strong);
+}
+
+.team-comp-status-missing {
+    background: var(--orange-bg);
+    color: var(--orange-ink);
+}
+
+.project-type-tag {
+    display: inline-block;
+    font-size: 0.7em;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+    background: var(--brand-50);
+    color: var(--brand-700, var(--blue-strong));
+    border: 1px solid var(--brand-100);
+    margin-top: 4px;
+}
+
+.proj-meta-item.team-comp-ok {
+    color: var(--blue-strong);
+}
+
+.proj-meta-item.team-comp-missing {
+    color: var(--orange-ink);
+}
+
+/* ===================== Ciclo de status do UX/UI ===================== */
+.ux-ui-status-section {
+    margin-top: 16px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+}
+
+.ux-ui-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    border: 1px solid transparent;
+    margin-bottom: 10px;
+}
+
+.ux-ui-status-form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.ux-ui-history-empty {
+    color: var(--text-3);
+    font-size: 0.82rem;
+    font-style: italic;
+    margin-top: 10px;
+}
+
+.ux-ui-history-list {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.ux-ui-history-item {
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    font-size: 0.8rem;
+}
+
+.ux-ui-history-transition {
+    color: var(--text-1, var(--ink));
+}
+
+.ux-ui-history-meta {
+    display: flex;
+    gap: 14px;
+    margin-top: 4px;
+    color: var(--text-2);
+    font-size: 0.76rem;
+}
+
+.ux-ui-history-nota {
+    margin-top: 6px;
+    color: var(--text-2);
+    font-size: 0.78rem;
+    font-style: italic;
+}
+
+.ux-ui-card-badge {
+    font-weight: 600;
+}
+
 /* Tooltip de sobrecarga */
 .overload-tooltip-wrapper {
     display: inline-block;

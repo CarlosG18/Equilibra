@@ -62,6 +62,212 @@ function renderSmartAllocationCheckboxes(selectedIds = []) {
             container.appendChild(label);
         });
     });
+
+    _updateTeamCompositionPreview();
+    _updateUxUiSection();
+}
+
+// COMPOSIÇÃO MÍNIMA DA EQUIPE (badges ao vivo no modal)
+
+function _updateTeamCompositionPreview() {
+    const badgesContainer = document.getElementById('teamCompositionBadges');
+    if (!badgesContainer) return;
+
+    const typeSelect = document.getElementById('projectType');
+    const typeKey = typeSelect ? typeSelect.value : '';
+
+    const selectedMembers = [];
+    document.querySelectorAll('input[name="projectMembers"]:checked').forEach(cb => {
+        selectedMembers.push(cb.value);
+    });
+
+    badgesContainer.innerHTML = typeKey ? renderTeamCompositionBadgesHTML(typeKey, selectedMembers) : '';
+}
+
+const projectTypeSelect = document.getElementById('projectType');
+if (projectTypeSelect) {
+    projectTypeSelect.addEventListener('change', _updateTeamCompositionPreview);
+}
+
+const membersAllocationContainer = document.getElementById('membersAllocation');
+if (membersAllocationContainer) {
+    membersAllocationContainer.addEventListener('change', function (e) {
+        if (e.target && e.target.name === 'projectMembers') {
+            _updateTeamCompositionPreview();
+            _updateUxUiSection();
+        }
+    });
+}
+
+// CICLO INDEPENDENTE DE STATUS DO UX/UI
+
+// Mostra/esconde a seção e recarrega badge + histórico. Só faz sentido para
+// projetos já existentes (editingProjectId) com ao menos 1 membro de UX/UI
+// selecionado — um projeto novo ainda não tem id para atrelar o histórico.
+async function _updateUxUiSection() {
+    const section = document.getElementById('uxUiStatusSection');
+    if (!section) return;
+
+    const selectedMembers = [];
+    document.querySelectorAll('input[name="projectMembers"]:checked').forEach(cb => {
+        selectedMembers.push(cb.value);
+    });
+
+    if (!editingProjectId || !hasUxUiAllocated(selectedMembers)) {
+        section.style.display = 'none';
+        return;
+    }
+
+    section.style.display = '';
+
+    const project = projects.find(p => p.id === editingProjectId);
+    const currentStatus = project ? project.ux_ui_status : null;
+
+    const badgeContainer = document.getElementById('uxUiCurrentBadge');
+    if (badgeContainer) {
+        badgeContainer.innerHTML = renderUxUiStatusBadgeHTML(
+            currentStatus,
+            project ? project.ux_ui_deadline : null,
+            project ? project.ux_ui_points : null,
+            project ? project.ux_ui_member_id : null
+        );
+    }
+
+    const statusSelect = document.getElementById('uxUiNewStatus');
+    if (statusSelect) statusSelect.value = currentStatus || 'nao_iniciado';
+    _toggleUxUiSprintsGroup();
+
+    // O select só lista os membros de UX/UI que de fato estão alocados neste
+    // projeto — um projeto pode ter mais de um UX/UI ao longo do tempo.
+    const memberSelect = document.getElementById('uxUiMember');
+    if (memberSelect) {
+        const uxUiMembers = selectedMembers
+            .map(id => members.find(m => m.id === id))
+            .filter(m => m && m.subarea === 'ux_ui');
+
+        const placeholder = '<option value="" disabled selected>Selecione o UX/UI do projeto</option>';
+        memberSelect.innerHTML = placeholder + uxUiMembers
+            .map(m => `<option value="${m.id}">${m.name}</option>`)
+            .join('');
+
+        if (project && project.ux_ui_member_id && uxUiMembers.some(m => m.id === project.ux_ui_member_id)) {
+            memberSelect.value = project.ux_ui_member_id;
+        }
+    }
+
+    await _reloadUxUiHistory();
+}
+
+// Só "Em andamento" cobra sobrecarga do UX/UI — é nesse momento que
+// perguntamos quantos sprints ele vai ficar ocupado. Em qualquer outro
+// status (inclusive "Em correção") o membro segue disponível como UX/UI da
+// equipe para próximas atividades, mas sem gerar pontos de sobrecarga.
+function _uxUiStatusIsWorking(status) {
+    return status === 'em_andamento';
+}
+
+function _toggleUxUiSprintsGroup() {
+    const statusSelect = document.getElementById('uxUiNewStatus');
+    const sprintsGroup = document.getElementById('uxUiSprintsGroup');
+    if (!statusSelect || !sprintsGroup) return;
+    sprintsGroup.style.display = _uxUiStatusIsWorking(statusSelect.value) ? '' : 'none';
+}
+
+function _updateUxUiSprintsPreview() {
+    const sprintsInput = document.getElementById('uxUiSprints');
+    const preview = document.getElementById('uxUiSprintsPreview');
+    if (!sprintsInput || !preview) return;
+
+    const n = parseInt(sprintsInput.value);
+    if (!n || n < 1) {
+        preview.textContent = '';
+        return;
+    }
+    const date = new Date();
+    date.setDate(date.getDate() + n * 7);
+    preview.textContent = `Prazo: ${date.toLocaleDateString('pt-BR')} · +${n * 2}pts para o UX/UI (${n} sprint${n > 1 ? 's' : ''})`;
+}
+
+const uxUiNewStatusSelect = document.getElementById('uxUiNewStatus');
+if (uxUiNewStatusSelect) {
+    uxUiNewStatusSelect.addEventListener('change', _toggleUxUiSprintsGroup);
+}
+
+const uxUiSprintsInput = document.getElementById('uxUiSprints');
+if (uxUiSprintsInput) {
+    uxUiSprintsInput.addEventListener('input', _updateUxUiSprintsPreview);
+}
+
+async function _reloadUxUiHistory() {
+    const historyContainer = document.getElementById('uxUiHistoryContainer');
+    if (!historyContainer || !editingProjectId) return;
+
+    const res = await ProjectService.buscarHistoricoUxUi(editingProjectId);
+    historyContainer.innerHTML = res.success
+        ? renderUxUiHistoryHTML(res.data)
+        : '<p class="ux-ui-history-empty">Não foi possível carregar o histórico.</p>';
+}
+
+const uxUiRegistrarBtn = document.getElementById('uxUiRegistrarBtn');
+if (uxUiRegistrarBtn) {
+    uxUiRegistrarBtn.addEventListener('click', async function () {
+        if (!editingProjectId) return;
+
+        const statusSelect = document.getElementById('uxUiNewStatus');
+        const memberSelect = document.getElementById('uxUiMember');
+        const notaInput = document.getElementById('uxUiNota');
+        const sprintsInput = document.getElementById('uxUiSprints');
+
+        const novoStatus = statusSelect ? statusSelect.value : '';
+        const uxUiMemberId = memberSelect ? memberSelect.value : '';
+        const nota = notaInput ? notaInput.value.trim() : '';
+        const sprints = sprintsInput ? sprintsInput.value : '';
+
+        const project = projects.find(p => p.id === editingProjectId);
+        const statusAnterior = project ? project.ux_ui_status : null;
+
+        if (!uxUiMemberId) {
+            showFloatingAlert('Selecione o membro de UX/UI do projeto.', 'error');
+            return;
+        }
+        if (novoStatus === (statusAnterior || 'nao_iniciado')) {
+            showFloatingAlert('O projeto já está nesse status.', 'error');
+            return;
+        }
+        if (_uxUiStatusIsWorking(novoStatus) && (!sprints || parseInt(sprints) < 1)) {
+            showFloatingAlert('Informe quantos sprints o UX/UI vai ficar ocupado.', 'error');
+            return;
+        }
+
+        uxUiRegistrarBtn.disabled = true;
+        try {
+            const res = await ProjectService.alterarStatusUxUi(editingProjectId, novoStatus, statusAnterior, uxUiMemberId, nota, sprints);
+            if (res.success) {
+                const index = projects.findIndex(p => p.id === editingProjectId);
+                if (index !== -1) projects[index] = res.project;
+                if (notaInput) notaInput.value = '';
+                if (sprintsInput) sprintsInput.value = '';
+                const sprintsPreview = document.getElementById('uxUiSprintsPreview');
+                if (sprintsPreview) sprintsPreview.textContent = '';
+
+                showFloatingAlert('Status de UX/UI atualizado!', 'success');
+
+                // Recalcula sobrecarga (os pontos do UX/UI podem ter mudado) sem
+                // usar updateFullInterface(), que reseta os checkboxes de alocação
+                // enquanto o modal ainda está aberto em edição.
+                calculateOverload();
+                renderMembers();
+                renderProjects();
+                if (typeof updateDashboard === 'function') updateDashboard();
+
+                await _updateUxUiSection();
+            } else {
+                showFloatingAlert('Erro: ' + res.error, 'error');
+            }
+        } finally {
+            uxUiRegistrarBtn.disabled = false;
+        }
+    });
 }
 
 // FORMS
@@ -76,6 +282,8 @@ if (projectForm) {
         const name = document.getElementById('projectName').value;
         const descInput = document.getElementById('projectDescription');
         const desc = descInput ? descInput.value : '';
+        const typeInput = document.getElementById('projectType');
+        const type = typeInput ? typeInput.value : '';
         const pointsInput = document.getElementById('overloadPoints') || document.getElementById('projectPoints');
         const points = pointsInput ? pointsInput.value : 0;
         const deadlineInput = document.getElementById('projectDeadline');
@@ -93,9 +301,9 @@ if (projectForm) {
 
         try {
             if (editingProjectId) {
-                await _salvarEdicaoProjeto(editingProjectId, name, desc, points, selectedMembers, deadline);
+                await _salvarEdicaoProjeto(editingProjectId, name, desc, points, selectedMembers, deadline, type);
             } else {
-                await _criarProjeto(name, desc, points, selectedMembers, this, deadline);
+                await _criarProjeto(name, desc, points, selectedMembers, this, deadline, type);
             }
         } catch (err) {
             console.error("Erro no processamento:", err);
@@ -109,8 +317,8 @@ if (projectForm) {
     });
 }
 
-async function _criarProjeto(name, desc, points, selectedMembers, form, deadline) {
-    const res = await ProjectService.adicionarProjeto(name, desc, points, null, selectedMembers, deadline);
+async function _criarProjeto(name, desc, points, selectedMembers, form, deadline, type) {
+    const res = await ProjectService.adicionarProjeto(name, desc, points, null, selectedMembers, deadline, type);
     if (res.success) {
         projects.push(res.data);
         showFloatingAlert('Projeto criado com sucesso!');
@@ -121,11 +329,11 @@ async function _criarProjeto(name, desc, points, selectedMembers, form, deadline
     }
 }
 
-async function _salvarEdicaoProjeto(id, name, desc, points, selectedMembers, deadline) {
+async function _salvarEdicaoProjeto(id, name, desc, points, selectedMembers, deadline, type) {
     const originalProject = projects.find(p => p.id === id);
     const currentScrumMasterId = originalProject ? originalProject.scrum_master : null;
 
-    const res = await ProjectService.atualizarProjeto(id, name, desc, points, currentScrumMasterId, selectedMembers, deadline);
+    const res = await ProjectService.atualizarProjeto(id, name, desc, points, currentScrumMasterId, selectedMembers, deadline, type);
     if (res.success) {
         const index = projects.findIndex(p => p.id === id);
         if (index !== -1) projects[index] = res.data;
@@ -179,6 +387,7 @@ function renderProjects() {
                     <p class="proj-card-name">${proj.name}</p>
                     <span class="proj-card-pts">${proj.overload_points || 0} pts</span>
                 </div>
+                ${proj.type ? `<span class="project-type-tag">${projectTypeLabel(proj.type)}</span>` : ''}
                 ${proj.description ? `<p class="proj-card-desc">${proj.description}</p>` : ''}
                 <div class="proj-card-meta">
                     ${sm
@@ -187,6 +396,8 @@ function renderProjects() {
                     <span class="proj-meta-item proj-meta-members ${teamIds.length === 0 ? 'proj-meta-empty' : ''}">
                         <i class="fas fa-users"></i>${teamIds.length > 0 ? `${teamIds.length} membro${teamIds.length !== 1 ? 's' : ''}` : 'Sem equipe'}
                     </span>
+                    ${proj.type ? teamCompositionCardBadge(proj.type, teamIds) : ''}
+                    ${uxUiStatusCardBadge(proj.ux_ui_status, proj.ux_ui_deadline, proj.ux_ui_points)}
                 </div>
                 <div class="proj-card-footer">
                     <div class="proj-card-deadline">${formatDeadlineCountdown(proj.deadline)}</div>
@@ -251,6 +462,11 @@ function editProject(id) {
     const project = projects.find(p => p.id === id);
     if (!project) return;
 
+    // Alterar estado da UI para "Modo Edição" já aqui, pois a seção de UX/UI
+    // (renderizada dentro de renderSmartAllocationCheckboxes, abaixo) depende
+    // de editingProjectId para saber de qual projeto carregar o histórico.
+    editingProjectId = id; // Variável global de controle
+
     // 1. Preencher campos de texto e número
     document.getElementById('projectId').value = project.id; // Campo hidden se existir
     document.getElementById('projectName').value = project.name;
@@ -258,6 +474,10 @@ function editProject(id) {
     // Tratamento para descrição (pode ser null)
     const descInput = document.getElementById('projectDescription');
     if (descInput) descInput.value = project.description || '';
+
+    // Tipo do projeto
+    const typeInput = document.getElementById('projectType');
+    if (typeInput) typeInput.value = project.type || '';
 
     // Tratamento para pontos (Supabase usa snake_case: overload_points)
     const pointsVal = project.overload_points || 0;
@@ -283,9 +503,7 @@ function editProject(id) {
     const allocatedIDs = project.allocated_members || [];
     renderSmartAllocationCheckboxes(allocatedIDs);
 
-    // 4. Alterar estado da UI para "Modo Edição"
-    editingProjectId = id; // Variável global de controle
-    
+    // 4. Configurar botões do modo edição
     const submitBtn = document.querySelector('#projectForm button[type="submit"]');
     if (submitBtn) {
         submitBtn.innerHTML = '<i class="fas fa-save"></i> Atualizar Projeto';
@@ -325,6 +543,7 @@ function resetProjectFormState() {
     if(cancelBtn) cancelBtn.style.display = 'none';
 
     renderSmartAllocationCheckboxes([]);
+    _updateTeamCompositionPreview();
 }
 
 // Ligar o botão cancelar (adicione no setupCancelButtons ou no DOMContentLoaded)

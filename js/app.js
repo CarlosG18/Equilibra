@@ -87,10 +87,12 @@ function calculateOverload() {
         const memberIds = proj.allocated_members || []; 
         const points = parseInt(proj.overload_points) || 0;
 
-        // Soma para a equipe de desenvolvimento
+        // Soma para a equipe de desenvolvimento — exceto UX/UI, que não fica
+        // alocado o projeto inteiro como Front-end/Back-end. A sobrecarga do
+        // UX/UI é tratada à parte (passo 1.5), só durante "Em andamento".
         memberIds.forEach(mId => {
             const member = members.find(m => m.id === mId);
-            if (member) {
+            if (member && member.subarea !== 'ux_ui') {
                 member.overload += points;
             }
         });
@@ -105,6 +107,26 @@ function calculateOverload() {
                 sm.overload += smPoints;
             }
         }
+    });
+
+    // 1.5. Sobrecarga temporária do UX/UI: só conta enquanto o status do
+    // projeto for exatamente "Em andamento" E o prazo em sprints não tiver
+    // vencido. Em qualquer outro status (não iniciado, finalizado, em
+    // correção) o membro continua contando como UX/UI da equipe para
+    // próximas atividades, mas sem pontos de sobrecarga.
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    projects.forEach(proj => {
+        if (proj.ux_ui_status !== 'em_andamento') return;
+        if (!proj.ux_ui_deadline || !proj.ux_ui_points || !proj.ux_ui_member_id) return;
+        const deadline = new Date(proj.ux_ui_deadline + 'T00:00:00');
+        if (deadline < today) return; // prazo vencido: pontos não contam mais
+
+        // Aplica só ao membro de UX/UI selecionado para este ciclo — um projeto
+        // pode ter mais de um UX/UI alocado, mas só um está "trabalhando" agora.
+        const member = members.find(m => m.id === proj.ux_ui_member_id);
+        if (member) member.overload += parseInt(proj.ux_ui_points) || 0;
     });
 
     // 2. Soma ATIVIDADES EXTRAS (CORRIGIDO PARA ARRAY)
