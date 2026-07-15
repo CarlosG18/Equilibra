@@ -80,6 +80,7 @@ function renderTests() {
             <td>
                 <div style="display:flex; align-items:center;">
                     ${toggleBtn}
+                    <button class="btn btn-primary btn-extra-small" onclick="editTest(${t.id})" title="Editar Teste" style="margin-right:5px;"><i class="fas fa-edit"></i></button>
                     <button class="btn btn-danger btn-extra-small" onclick="askDeleteTest(${t.id})"><i class="fas fa-trash"></i></button>
                 </div>
             </td>
@@ -89,11 +90,11 @@ function renderTests() {
 }
 
 /**
- * Função para criar um novo teste (Submit do Formulário)
+ * Função para criar ou atualizar um teste (Submit do Formulário)
  */
 async function createTest(event) {
     event.preventDefault(); // Impede recarregar a página
-    
+
     const projectId = document.getElementById('testProjectSelect').value;
     const name = document.getElementById('testName').value;
     const points = document.getElementById('testPoints').value;
@@ -109,55 +110,167 @@ async function createTest(event) {
         return;
     }
 
-    showFloatingAlert('Salvando teste...', 'info');
+    const payload = {
+        project_id: projectId,
+        name: name,
+        overload_points: parseInt(points),
+        status: status,
+        deadline: deadline || null
+    };
 
-    // 1. Insere o Teste na tabela project_tests
-    // CORREÇÃO: Usamos _supabase
-    const { data: testData, error } = await _supabase
-        .from('project_tests')
-        .insert({
-            project_id: projectId,
-            name: name,
-            overload_points: parseInt(points),
-            status: status,
-            deadline: deadline || null
-        })
-        .select()
-        .single();
+    let testId;
 
-    if (error) {
-        console.error('Erro ao criar teste:', error);
-        showFloatingAlert('Erro ao criar teste: ' + error.message, 'error');
-        return;
+    if (editingTestId) {
+        showFloatingAlert('Atualizando teste...', 'info');
+
+        // 1. Atualiza o Teste na tabela project_tests
+        const { error } = await _supabase
+            .from('project_tests')
+            .update(payload)
+            .eq('id', editingTestId);
+
+        if (error) {
+            console.error('Erro ao atualizar teste:', error);
+            showFloatingAlert('Erro ao atualizar teste: ' + error.message, 'error');
+            return;
+        }
+
+        testId = editingTestId;
+
+        // 2. Ressincroniza os membros vinculados (remove todos e reinsere os marcados)
+        const { error: deleteError } = await _supabase
+            .from('test_members')
+            .delete()
+            .eq('test_id', testId);
+
+        if (deleteError) {
+            console.error('Erro ao ressincronizar membros:', deleteError);
+            showFloatingAlert('Teste atualizado, mas houve erro ao ressincronizar membros.', 'warning');
+        }
+    } else {
+        showFloatingAlert('Salvando teste...', 'info');
+
+        // 1. Insere o Teste na tabela project_tests
+        const { data: testData, error } = await _supabase
+            .from('project_tests')
+            .insert(payload)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Erro ao criar teste:', error);
+            showFloatingAlert('Erro ao criar teste: ' + error.message, 'error');
+            return;
+        }
+
+        testId = testData.id;
     }
 
-    // 2. Vincula os Membros na tabela test_members (muitos-para-muitos)
+    // 3. Vincula os Membros na tabela test_members (muitos-para-muitos)
     if (checks.length > 0) {
         const inserts = Array.from(checks).map(c => ({
-            test_id: testData.id,
+            test_id: testId,
             member_id: c.value // UUID do membro
         }));
-        
+
         // CORREÇÃO: Usamos _supabase
         const { error: memberError } = await _supabase
             .from('test_members')
             .insert(inserts);
-            
+
         if (memberError) {
             console.error('Erro ao vincular membros:', memberError);
-            showFloatingAlert('Teste criado, mas houve erro ao vincular membros.', 'warning');
+            showFloatingAlert('Teste salvo, mas houve erro ao vincular membros.', 'warning');
         }
     }
 
-    showFloatingAlert('Teste criado com sucesso!', 'success');
+    showFloatingAlert(editingTestId ? 'Teste atualizado com sucesso!' : 'Teste criado com sucesso!', 'success');
+    resetTestFormState();
     closeModal('modalTest');
-    
+
     // Recarrega a lista
     await loadTests();
-    
+
     // Tenta atualizar a carga geral se a função loadData existir (do app.js)
     if(typeof loadData === 'function') {
         await loadData();
+    }
+}
+
+/**
+ * Preenche o formulário com os dados de um teste existente para edição
+ */
+function editTest(id) {
+    const test = projectTests.find(t => t.id === id);
+    if (!test) return;
+
+    openModal('modalTest');
+
+    document.getElementById('testId').value = test.id;
+    document.getElementById('testProjectSelect').value = test.project_id;
+    document.getElementById('testName').value = test.name;
+    document.getElementById('testPoints').value = test.overload_points;
+
+    const pointsVal = document.getElementById('testPointsVal');
+    if (pointsVal) pointsVal.textContent = test.overload_points;
+
+    document.getElementById('testStatus').value = test.status;
+
+    if (typeof resetDeadlinePicker === 'function') {
+        resetDeadlinePicker('testDeadline');
+    }
+    const deadlineInput = document.getElementById('testDeadline');
+    if (deadlineInput) deadlineInput.value = test.deadline || '';
+
+    // Marca os membros já vinculados ao teste
+    document.querySelectorAll('.tm-check').forEach(cb => {
+        cb.checked = test.members.includes(cb.value);
+    });
+
+    editingTestId = id;
+
+    const submitBtn = document.getElementById('testSubmitBtn');
+    if (submitBtn) {
+        submitBtn.innerHTML = '<i class="fas fa-save"></i> Atualizar Teste';
+        submitBtn.classList.remove('btn-add-test');
+        submitBtn.classList.add('btn-warning');
+    }
+
+    const cancelBtn = document.getElementById('testCancelBtn');
+    if (cancelBtn) cancelBtn.style.display = 'inline-block';
+
+    const form = document.getElementById('testForm');
+    if (form) form.scrollIntoView({ behavior: 'smooth' });
+
+    showFloatingAlert(`Editando teste: ${test.name}`, 'info');
+}
+
+/**
+ * Restaura o formulário de teste ao estado de criação
+ */
+function resetTestFormState() {
+    editingTestId = null;
+
+    const submitBtn = document.getElementById('testSubmitBtn');
+    if (submitBtn) {
+        submitBtn.innerHTML = '<i class="fas fa-save"></i> Criar teste';
+        submitBtn.classList.remove('btn-warning');
+        submitBtn.classList.add('btn-add-test');
+    }
+
+    const cancelBtn = document.getElementById('testCancelBtn');
+    if (cancelBtn) cancelBtn.style.display = 'none';
+}
+
+/**
+ * Cancela a edição em andamento e limpa o formulário
+ */
+function cancelTestEdit() {
+    resetTestFormState();
+    const form = document.getElementById('testForm');
+    if (form) form.reset();
+    if (typeof resetDeadlinePicker === 'function') {
+        resetDeadlinePicker('testDeadline');
     }
 }
 

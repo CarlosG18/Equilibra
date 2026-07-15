@@ -90,7 +90,7 @@ function renderActivities() {
     if (extraActivities.length === 0) {
         activitiesList.innerHTML = `
             <tr>
-                <td colspan="5" style="text-align: center; color: var(--gray); font-style: italic; padding: 20px;">
+                <td colspan="6" style="text-align: center; color: var(--gray); font-style: italic; padding: 20px;">
                     Nenhuma atividade extra cadastrada. Use o formulário acima para cadastrar atividades.
                 </td>
             </tr>
@@ -146,25 +146,26 @@ function renderActivities() {
 
         // --- 3. CONSTRUÇÃO DA LINHA ---
         const row = document.createElement('tr');
+        row.dataset.status = activity.status || '';
 
         row.innerHTML = `
-            <td>
+            <td data-label="Atividade">
                 <div style="font-weight: bold; color: var(--dark-blue);">${activity.name}</div>
                 <small style="color: var(--gray); display: block; margin-top: 4px;">${activity.description || 'Sem descrição'}</small>
             </td>
-            <td>
+            <td data-label="Membro">
                 ${membersHtml}
             </td>
-            <td>
+            <td data-label="Pontos">
                 <span class="activity-indicator" style="white-space: nowrap;">
                     ${activity.points} pts
                 </span>
             </td>
-            <td style="white-space: nowrap;">${formatDeadlineCountdown(activity.deadline)}</td>
-            <td>
+            <td data-label="Prazo" style="white-space: nowrap;">${formatDeadlineCountdown(activity.deadline)}</td>
+            <td data-label="Status">
                 <span class="${statusClass}">${statusText}</span>
             </td>
-            <td>
+            <td data-label="Ações">
                 <div class="action-buttons">
                     <button class="btn btn-info btn-extra-small" onclick="editActivity('${activity.id}'); openModal('modalActivity')" title="Editar">
                         <i class="fas fa-edit"></i>
@@ -324,12 +325,6 @@ function renderActivitiesSummary() {
         return;
     }
 
-    // Container visual
-    const listContainer = document.createElement('div');
-    listContainer.style.display = 'flex';
-    listContainer.style.flexDirection = 'column';
-    listContainer.style.gap = '8px';
-
     // 3. RENDERIZAR COM CORES
     activeMembers.forEach((item, index) => {
         const { member, activityCount, projectCount } = item;
@@ -404,8 +399,6 @@ function renderActivitiesSummary() {
             </div>
         `;
 
-        listContainer.appendChild(row);
+        container.appendChild(row);
     });
-
-    container.appendChild(listContainer);
 }

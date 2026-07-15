@@ -630,6 +630,7 @@
                 <button class="btn-close-modal" onclick="closeModal('modalTest')" aria-label="Fechar">&times;</button>
                 <h2><i class="fas fa-vial"></i> Novo teste</h2>
                 <form id="testForm">
+                    <input type="hidden" id="testId">
                     <div class="form-group">
                         <label>Projeto vinculado</label>
                         <select id="testProjectSelect" class="form-control" required>
@@ -682,7 +683,10 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-add-test btn-block">
+                        <button type="button" class="btn btn-warning" id="testCancelBtn" style="display: none;" onclick="cancelTestEdit()">
+                            <i class="fas fa-times"></i> Cancelar edição
+                        </button>
+                        <button type="submit" id="testSubmitBtn" class="btn btn-add-test btn-block">
                             <i class="fas fa-save"></i> Criar teste
                         </button>
                     </div>
