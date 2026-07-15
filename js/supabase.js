@@ -119,7 +119,9 @@ const ProjectService = {
     // --- 3. CRUD DE PROJETOS (Com Correção de Scrum Master) ---
     // ==========================================
 
-    async adicionarProjeto(name, description, overloadPoints, scrumMasterId, allocatedMembersIds, deadline) {
+    async adicionarProjeto(name, description, overloadPoints, scrumMasterId, allocatedMembersIds, deadline, type) {
+        if (!type) return { success: false, error: 'Tipo do projeto é obrigatório.' };
+
         const { data, error } = await _supabase
             .from('projects')
             .insert([{
@@ -128,7 +130,8 @@ const ProjectService = {
                 overload_points: parseInt(overloadPoints),
                 scrum_master: scrumMasterId || null,
                 allocated_members: allocatedMembersIds,
-                deadline: deadline || null
+                deadline: deadline || null,
+                type
             }])
             .select();
 
@@ -136,14 +139,17 @@ const ProjectService = {
         return { success: true, data: data[0] };
     },
 
-    async atualizarProjeto(id, name, description, overloadPoints, scrumMasterId, allocatedMembersIds, deadline) {
+    async atualizarProjeto(id, name, description, overloadPoints, scrumMasterId, allocatedMembersIds, deadline, type) {
+        if (!type) return { success: false, error: 'Tipo do projeto é obrigatório.' };
+
         const updateData = {
             name,
             description,
             overload_points: parseInt(overloadPoints),
             scrum_master: scrumMasterId || null,
             allocated_members: allocatedMembersIds,
-            deadline: deadline || null
+            deadline: deadline || null,
+            type
         };
 
         const { data, error } = await _supabase
@@ -190,6 +196,72 @@ const ProjectService = {
         const { error } = await _supabase.from('projects').delete().eq('id', id);
         if (error) return { success: false, error: error.message };
         return { success: true };
+    },
+
+    // --- Ciclo independente de status do UX/UI ---
+
+    async alterarStatusUxUi(projectId, novoStatus, statusAnterior, uxUiMemberId, nota, sprints) {
+        const validStatuses = ['nao_iniciado', 'em_andamento', 'finalizado', 'em_correcao'];
+        if (!validStatuses.includes(novoStatus)) {
+            return { success: false, error: 'Status de UX/UI inválido.' };
+        }
+        if (!uxUiMemberId) {
+            return { success: false, error: 'Selecione o membro de UX/UI do projeto.' };
+        }
+
+        const updatePayload = { ux_ui_status: novoStatus, ux_ui_member_id: uxUiMemberId };
+
+        // Só "Em andamento" cobra sobrecarga: exige quantos sprints o UX/UI vai
+        // ficar ocupado, e os pontos só contam até esse prazo vencer. Em
+        // qualquer outro status (inclusive "Em correção") o membro segue como
+        // UX/UI da equipe para próximas atividades, sem gerar pontos.
+        const isWorking = novoStatus === 'em_andamento';
+        if (isWorking) {
+            const n = parseInt(sprints);
+            if (!n || n < 1) {
+                return { success: false, error: 'Informe quantos sprints o UX/UI vai ficar ocupado.' };
+            }
+            const deadline = new Date();
+            deadline.setDate(deadline.getDate() + n * 7); // 1 sprint = 1 semana
+            updatePayload.ux_ui_sprints = n;
+            updatePayload.ux_ui_points = n * 2;
+            updatePayload.ux_ui_deadline = deadline.toISOString().split('T')[0];
+        }
+
+        const { data: projectData, error: projectError } = await _supabase
+            .from('projects')
+            .update(updatePayload)
+            .eq('id', projectId)
+            .select();
+
+        if (projectError) return { success: false, error: projectError.message };
+
+        const { data: historyData, error: historyError } = await _supabase
+            .from('project_ux_status_history')
+            .insert([{
+                project_id: projectId,
+                previous_status: statusAnterior || null,
+                new_status: novoStatus,
+                ux_ui_member_id: uxUiMemberId,
+                nota: nota || null
+            }])
+            .select();
+
+        if (historyError) return { success: false, error: historyError.message };
+
+        return { success: true, project: projectData[0], history: historyData[0] };
+    },
+
+    async buscarHistoricoUxUi(projectId) {
+        const { data, error } = await _supabase
+            .from('project_ux_status_history')
+            .select('*')
+            .eq('project_id', projectId)
+            .order('created_at', { ascending: false })
+            .order('id', { ascending: false });
+
+        if (error) return { success: false, error: error.message };
+        return { success: true, data: data || [] };
     },
 
     // ==========================================

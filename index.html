@@ -532,6 +532,16 @@
                             placeholder="Descreva o projeto"></textarea>
                     </div>
                     <div class="form-group">
+                        <label for="projectType"><i class="fas fa-layer-group"></i> Tipo do projeto</label>
+                        <select id="projectType" class="form-control" required>
+                            <option value="" disabled selected>Selecione o tipo do projeto</option>
+                            <option value="site">Site</option>
+                            <option value="lp_simples">Landing Page Simples</option>
+                            <option value="lp_complexa">Landing Page Complexa</option>
+                            <option value="sistema">Sistema</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label><i class="fas fa-calendar-alt"></i> Prazo de entrega</label>
                         <div class="deadline-picker">
                             <div class="deadline-mode-toggle">
@@ -563,6 +573,44 @@
 
                     <h3 class="section-title"><i class="fas fa-user-tag"></i> Alocar membros ao projeto</h3>
                     <div id="membersAllocation"></div>
+                    <div id="teamCompositionBadges"></div>
+
+                    <div id="uxUiStatusSection" class="ux-ui-status-section" style="display:none;">
+                        <h3 class="section-title"><i class="fas fa-pen-ruler"></i> UX/UI — ciclo de atuação</h3>
+                        <div id="uxUiCurrentBadge"></div>
+
+                        <div class="ux-ui-status-form">
+                            <div class="form-group">
+                                <label for="uxUiNewStatus">Novo status</label>
+                                <select id="uxUiNewStatus" class="form-control">
+                                    <option value="nao_iniciado">Não iniciado</option>
+                                    <option value="em_andamento">Em andamento</option>
+                                    <option value="finalizado">Finalizado</option>
+                                    <option value="em_correcao">Em correção</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="uxUiMember">Membro de UX/UI</label>
+                                <select id="uxUiMember" class="form-control">
+                                    <option value="" disabled selected>Selecione o UX/UI do projeto</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="uxUiSprintsGroup" style="display:none;">
+                                <label for="uxUiSprints"><i class="fas fa-flag-checkered"></i> Quantos sprints o UX/UI vai ficar ocupado?</label>
+                                <input type="number" id="uxUiSprints" class="form-control" min="1" max="52" placeholder="Ex: 2">
+                                <small id="uxUiSprintsPreview" class="deadline-sprint-preview"></small>
+                            </div>
+                            <div class="form-group">
+                                <label for="uxUiNota">Observação (opcional)</label>
+                                <textarea id="uxUiNota" class="form-control" rows="2" placeholder="Ex: Cliente pediu ajuste de paleta"></textarea>
+                            </div>
+                            <button type="button" class="btn btn-info btn-extra-small" id="uxUiRegistrarBtn">
+                                <i class="fas fa-clock-rotate-left"></i> Registrar mudança
+                            </button>
+                        </div>
+
+                        <div id="uxUiHistoryContainer"></div>
+                    </div>
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-warning" id="projectCancelBtn" style="display: none;">
@@ -773,6 +821,8 @@
     <script src="js/dashboard.js" defer></script>
     <script src="js/auth.js" defer></script>
     <script src="js/supabase.js"></script>
+    <script src="js/projectTypes.js"></script>
+    <script src="js/uxUiStatus.js"></script>
     <script src="js/atividades_extras.js"></script>
     <script src="js/app.js"></script>
     <script src="js/membros.js"></script>

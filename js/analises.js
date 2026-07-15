@@ -5,48 +5,9 @@
 // ==========================================================================
 
 // Cenários de projeto: cada um exige X frontends e Y backends LIVRES.
-const PROJECT_SCENARIOS = [
-    {
-        key: 'site',
-        name: 'Site',
-        icon: 'fa-globe',
-        desc: 'Site institucional / multi-página',
-        front: 2,
-        back: 1,
-        points: 5,   // sobrecarga estimada por membro alocado
-        color: '#0787cb',
-    },
-    {
-        key: 'lp_simples',
-        name: 'LP Simples',
-        icon: 'fa-file',
-        desc: 'Landing page enxuta, poucas seções',
-        front: 1,
-        back: 1,
-        points: 3,
-        color: '#10b981',
-    },
-    {
-        key: 'lp_complexa',
-        name: 'LP Complexa',
-        icon: 'fa-file-invoice',
-        desc: 'Landing page com muitas seções/integrações',
-        front: 2,
-        back: 1,
-        points: 6,
-        color: '#fc9c14',
-    },
-    {
-        key: 'sistema',
-        name: 'Sistema (simplificado)',
-        icon: 'fa-server',
-        desc: 'Aplicação web com CRUD e regras de negócio',
-        front: 2,
-        back: 2,
-        points: 8,
-        color: '#7c3aed',
-    },
-];
+// Definidos em js/projectTypes.js (fonte única, compartilhada com a
+// classificação/validação de equipe mínima no cadastro de projetos).
+const PROJECT_SCENARIOS = PROJECT_TYPES;
 
 // Retorna o limite de "livre" escolhido no select (padrão: < 10 pts = Disponível).
 function _getLivreThreshold() {
