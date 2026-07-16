@@ -10,7 +10,7 @@ function renderScrumMasters() {
     if (projectsWithScrum.length === 0) {
         scrumList.innerHTML = `
             <tr>
-                <td colspan="4" style="text-align: center; color: var(--gray); font-style: italic;">
+                <td colspan="3" style="text-align: center; color: var(--gray); font-style: italic;">
                     Nenhum Scrum Master definido. Use o formulário acima para definir Scrum Masters.
                 </td>
             </tr>
@@ -32,7 +32,6 @@ function renderScrumMasters() {
                 <strong>${scrumMaster.name}</strong><br>
                 <small>${scrumMaster.role}</small>
             </td>
-            <td>${scrumMaster.email}</td>
             <td>
                 <button class="btn btn-danger btn-extra-small" onclick="confirmDelete('scrum', '${project.id}', '${project.name.replace(/'/g, "\\'")}')">
                     <i class="fas fa-user-slash"></i> Remover

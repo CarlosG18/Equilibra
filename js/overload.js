@@ -50,6 +50,14 @@ function _itemActive(deadline, cutoff) {
     return _deadlineActiveAt(deadline, cutoff);
 }
 
+// Um item só gera carga depois de começar. Diferente do prazo, o início vale
+// nas duas leituras (hoje e projeção): algo que ainda não começou não pesa
+// agora nem pesava no corte. Sem início definido, considera-se já iniciado.
+function _startedBy(startDate, refDate) {
+    if (!startDate) return true;
+    return new Date(startDate + 'T00:00:00') <= refDate;
+}
+
 // Linhas de sobrecarga de um membro.
 //   opts.cutoff: Date  → considera só o que ainda estará ativo nessa data.
 //                null  → carga de hoje (padrão).
@@ -124,6 +132,9 @@ function overloadLinesFor(memberId, opts = {}) {
     if (typeof projectTests !== 'undefined' && Array.isArray(projectTests)) {
         projectTests.forEach(test => {
             if (test.status !== 'em_andamento') return;
+            // Antes de começar, o teste não pesa para ninguém — nem para os
+            // membros, nem para o gestor.
+            if (!_startedBy(test.start_date, refDate)) return;
             if (!_itemActive(test.deadline, cutoff)) return;
             const pts = parseInt(test.overload_points) || 0;
             const label = test.name || test.title || 'Teste';
