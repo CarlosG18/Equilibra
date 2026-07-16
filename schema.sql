@@ -63,6 +63,7 @@ CREATE TABLE project_tests (
     project_id      UUID        REFERENCES projects(id) ON DELETE CASCADE,
     overload_points INTEGER     DEFAULT 0,
     status          VARCHAR(50) DEFAULT 'em_andamento',
+    test_manager    UUID        REFERENCES members(id) ON DELETE SET NULL,
     created_at      TIMESTAMP   DEFAULT NOW()
 );
 
@@ -119,6 +120,13 @@ ALTER TABLE project_tests     ADD COLUMN IF NOT EXISTS deadline DATE;
 -- ==========================================
 ALTER TABLE members ADD COLUMN IF NOT EXISTS num_materias INTEGER DEFAULT 0;
 ALTER TABLE members ADD COLUMN IF NOT EXISTS trabalho     BOOLEAN DEFAULT FALSE;
+
+-- ==========================================
+-- MIGRAÇÃO: gestor de testes
+-- Execute no SQL Editor do Supabase se a tabela project_tests já existir
+-- ==========================================
+ALTER TABLE project_tests ADD COLUMN IF NOT EXISTS test_manager UUID REFERENCES members(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_project_tests_test_manager ON project_tests(test_manager);
 
 -- ==========================================
 -- MIGRAÇÃO: tipo do projeto (classificação + validação de equipe mínima)

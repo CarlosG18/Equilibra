@@ -199,64 +199,18 @@ function _renderAnalysisSummaryNote(threshold) {
 // ==========================================================================
 
 const ANALYSIS_MONTHS_AHEAD = 6;     // quantos meses projetar
-const ANALYSIS_CRITICAL = 15;        // a partir daqui o membro é "crítico" (sobrecarregado)
+const ANALYSIS_CRITICAL = OVERLOAD_CRITICAL;  // limite de "crítico" — ver js/overload.js
 let _selectedProduct = 'site';       // produto fixo escolhido pelo usuário (projeção mensal)
 let _simMonthIndex = 0;              // mês de entrada escolhido na simulação (0 = atual)
 let _simBasket = {};                // carrinho da simulação: { [productKey]: quantidade }
 
 const _MONTH_NAMES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
-// Um item (projeto/atividade/teste) ainda está ATIVO num dado corte de data?
-// Sem prazo => continua indefinidamente (nunca libera).
-function _isActiveAt(deadline, cutoff) {
-    if (!deadline) return true;
-    return new Date(deadline + 'T00:00:00') > cutoff;
-}
-
-// Recalcula o overload de cada membro considerando apenas itens ainda ativos em `cutoff`.
-// Espelha a lógica de calculateOverload() em app.js, mas com filtro de prazo.
+// Overload de cada membro considerando apenas o que ainda estará ativo em
+// `cutoff`. As regras de pontuação são as mesmas do badge — ver js/overload.js.
 function _overloadAtCutoff(cutoff) {
     const load = {};
-    members.forEach(m => { load[m.id] = 0; });
-
-    // Projetos
-    projects.forEach(p => {
-        if (!_isActiveAt(p.deadline, cutoff)) return;
-        const pts = parseInt(p.overload_points) || 0;
-        (p.allocated_members || []).forEach(id => { if (load[id] != null) load[id] += pts; });
-        const smId = p.scrum_master_id || p.scrum_master;
-        if (smId && load[smId] != null) load[smId] += Math.max(1, Math.round(pts * 0.4)) + 2;
-    });
-
-    // Atividades extras
-    extraActivities.forEach(a => {
-        if (a.status !== 'ativa') return;
-        if (!_isActiveAt(a.deadline, cutoff)) return;
-        const pts = parseInt(a.points) || 0;
-        const ids = Array.isArray(a.allocated_members)
-            ? a.allocated_members
-            : (a.member_id ? [a.member_id] : []);
-        ids.forEach(id => { if (load[id] != null) load[id] += pts; });
-    });
-
-    // Testes
-    if (typeof projectTests !== 'undefined' && Array.isArray(projectTests)) {
-        projectTests.forEach(t => {
-            if (t.status !== 'em_andamento') return;
-            if (!_isActiveAt(t.deadline, cutoff)) return;
-            const pts = parseInt(t.overload_points) || 0;
-            (t.members || []).forEach(id => { if (load[id] != null) load[id] += pts; });
-        });
-    }
-
-    // Carga pessoal e cargo (constantes ao longo do tempo)
-    members.forEach(m => {
-        if (m.role && m.role.toLowerCase().includes('gerente')) load[m.id] += 5;
-        if (m.trabalho) load[m.id] += 4;
-        const mats = parseInt(m.num_materias) || 0;
-        if (mats > 0) load[m.id] += Math.round(mats * 0.5);
-    });
-
+    members.forEach(m => { load[m.id] = overloadTotalFor(m.id, { cutoff }); });
     return load;
 }
 
@@ -510,7 +464,7 @@ function simClearBasket() {
 
 function _statusForLoad(load) {
     if (load >= ANALYSIS_CRITICAL) return { label: 'Crítico', color: '#e23d28' };
-    if (load >= 10) return { label: 'Atenção', color: '#fc9c14' };
+    if (load >= OVERLOAD_WARNING) return { label: 'Atenção', color: '#fc9c14' };
     return { label: 'Disponível', color: '#0a7a52' };
 }
 

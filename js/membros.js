@@ -76,72 +76,22 @@ if (memberForm) {
 
 // RENDER
 
-function buildOverloadBreakdown(memberId) {
-    const lines = [];
-
-    projects.forEach(proj => {
-        const pts = parseInt(proj.overload_points) || 0;
-        if ((proj.allocated_members || []).includes(memberId)) {
-            lines.push({ label: proj.name, pts, icon: 'fa-project-diagram', type: 'project' });
-        }
-        const smId = proj.scrum_master_id || proj.scrum_master;
-        if (smId === memberId) {
-            const smPts = Math.max(1, Math.round(pts * 0.4)) + 2;
-            lines.push({ label: `SM: ${proj.name}`, pts: smPts, icon: 'fa-crown', type: 'sm' });
-        }
-    });
-
-    extraActivities.forEach(act => {
-        if (act.status !== 'ativa') return;
-        const pts = parseInt(act.points) || 0;
-        const allocated = act.allocated_members && Array.isArray(act.allocated_members)
-            ? act.allocated_members.includes(memberId)
-            : act.member_id === memberId;
-        if (allocated) {
-            lines.push({ label: act.name || act.title || 'Atividade', pts, icon: 'fa-tasks', type: 'activity' });
-        }
-    });
-
-    if (typeof projectTests !== 'undefined' && Array.isArray(projectTests)) {
-        projectTests.forEach(test => {
-            if (test.status === 'em_andamento' && (test.members || []).includes(memberId)) {
-                const pts = parseInt(test.overload_points) || 0;
-                lines.push({ label: test.name || test.title || 'Teste', pts, icon: 'fa-vial', type: 'test' });
-            }
-        });
-    }
-
-    const member = members.find(m => m.id === memberId);
-    if (member) {
-        if (member.role && member.role.toLowerCase().includes('gerente')) {
-            lines.push({ label: 'Bônus de Gerência', pts: 5, icon: 'fa-user-tie', type: 'cargo' });
-        }
-        if (member.trabalho) {
-            lines.push({ label: 'Emprego', pts: 4, icon: 'fa-briefcase', type: 'personal' });
-        }
-        const mats = parseInt(member.num_materias) || 0;
-        if (mats > 0) {
-            const matPts = Math.round(mats * 0.5);
-            lines.push({ label: `${mats} matéria${mats !== 1 ? 's' : ''}`, pts: matPts, icon: 'fa-book', type: 'personal' });
-        }
-    }
-
-    return lines;
-}
-
 function buildOverloadTooltipHtml(memberId) {
-    const lines = buildOverloadBreakdown(memberId);
+    // Mesmas linhas que somam o badge do membro — ver js/overload.js.
+    const lines = overloadLinesFor(memberId);
     if (lines.length === 0) {
         return '<div class="overload-tooltip-empty">Sem alocações ativas</div>';
     }
 
     const typeColors = {
-        project:  '#043c73',
-        sm:       '#0787cb',
-        activity: '#fc9c14',
-        test:     '#5bb0e0',
-        cargo:    '#7c3aed',
-        personal: '#10b981',
+        project:      '#043c73',
+        sm:           '#0787cb',
+        ux_ui:        '#c026d3',
+        activity:     '#fc9c14',
+        test:         '#5bb0e0',
+        test_manager: '#0787cb',
+        cargo:        '#7c3aed',
+        personal:     '#10b981',
     };
 
     const rows = lines.map(l => `

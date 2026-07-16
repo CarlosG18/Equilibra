@@ -16,17 +16,17 @@ async function updateDashboard() {
 
     // 2. Cálculos de Estatísticas de Sobrecarga
     let totalOverload = 0;
-    let highOverloadCount = 0; // > 15
-    let warningOverloadCount = 0; // 10 - 15
-    let availableCount = 0; // < 10
+    let highOverloadCount = 0;    // >= OVERLOAD_CRITICAL
+    let warningOverloadCount = 0; // >= OVERLOAD_WARNING
+    let availableCount = 0;       // abaixo disso
 
     members.forEach(m => {
         // Garante que overload existe (caso calculateOverload ainda não tenha rodado)
         const load = m.overload || 0; 
         totalOverload += load;
 
-        if (load >= 15) highOverloadCount++;
-        else if (load >= 10) warningOverloadCount++;
+        if (load >= OVERLOAD_CRITICAL) highOverloadCount++;
+        else if (load >= OVERLOAD_WARNING) warningOverloadCount++;
         else availableCount++;
     });
 
@@ -69,7 +69,11 @@ function renderOverloadChart(low, medium, high) {
     dashboardChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['Disponível (<10)', 'Atenção (10-15)', 'Crítico (>15)'],
+            labels: [
+                `Disponível (<${OVERLOAD_WARNING})`,
+                `Atenção (${OVERLOAD_WARNING}-${OVERLOAD_CRITICAL - 1})`,
+                `Crítico (${OVERLOAD_CRITICAL}+)`,
+            ],
             datasets: [{
                 data: [low, medium, high],
                 backgroundColor: ['#0787cb', '#fc9c14', '#e23d28'],
@@ -112,8 +116,8 @@ function renderDashboardLists() {
         `).join('') || '<small>Sem dados.</small>';
     }
 
-    // B. Estado de Alerta (Membros com carga >= 15)
-    const alertMembers = members.filter(m => (m.overload || 0) >= 15).sort((a, b) => (b.overload || 0) - (a.overload || 0));
+    // B. Estado de Alerta (membros em carga crítica)
+    const alertMembers = members.filter(m => (m.overload || 0) >= OVERLOAD_CRITICAL).sort((a, b) => (b.overload || 0) - (a.overload || 0));
     const alertList = document.getElementById('alertMembers');
     if (alertList) {
         alertList.innerHTML = alertMembers.length > 0 ? alertMembers.map(m => `
@@ -193,41 +197,38 @@ function renderDashboardLists() {
 }
 
 // --- TOOLTIPS DA TABELA DE CARGA ---
-function buildProjectsTooltipHtml(memberProjects, smProjects) {
-    if (memberProjects.length === 0 && smProjects.length === 0) {
-        return '<div class="overload-tooltip-empty">Sem projetos alocados</div>';
-    }
-    const rows = [
-        ...memberProjects.map(p => `
-            <div class="overload-tooltip-row">
-                <span class="overload-tooltip-label">
-                    <i class="fas fa-project-diagram" style="color:#043c73;width:14px"></i> ${p.name}
-                </span>
-                <span class="overload-tooltip-pts">${p.overload_points || 0} pts</span>
-            </div>`),
-        ...smProjects.map(p => `
-            <div class="overload-tooltip-row">
-                <span class="overload-tooltip-label">
-                    <i class="fas fa-crown" style="color:#0787cb;width:14px"></i> SM: ${p.name}
-                </span>
-                <span class="overload-tooltip-pts">+2 pts</span>
-            </div>`),
-    ].join('');
-    return `<div class="overload-tooltip-title"><i class="fas fa-project-diagram"></i> Projetos</div>${rows}`;
-}
+// Os pontos vêm das mesmas linhas que somam a coluna "Sobrecarga" — ver
+// js/overload.js. Não recalcule nada aqui: o peso do SM é proporcional à
+// complexidade do projeto, não um valor fixo.
+const _WL_TOOLTIP_COLORS = {
+    project:  '#043c73',
+    sm:       '#0787cb',
+    ux_ui:    '#c026d3',
+    activity: '#fc9c14',
+};
 
-function buildActivitiesTooltipHtml(memberActivities) {
-    if (memberActivities.length === 0) {
-        return '<div class="overload-tooltip-empty">Sem atividades ativas</div>';
+function _buildWorkloadTooltip(lines, title, titleIcon, emptyText) {
+    if (lines.length === 0) {
+        return `<div class="overload-tooltip-empty">${emptyText}</div>`;
     }
-    const rows = memberActivities.map(a => `
+    const rows = lines.map(l => `
         <div class="overload-tooltip-row">
             <span class="overload-tooltip-label">
-                <i class="fas fa-tasks" style="color:#fc9c14;width:14px"></i> ${a.name || a.title || 'Atividade'}
+                <i class="fas ${l.icon}" style="color:${_WL_TOOLTIP_COLORS[l.type]};width:14px"></i> ${l.label}
             </span>
-            <span class="overload-tooltip-pts">${a.points || 0} pts</span>
+            <span class="overload-tooltip-pts">${l.pts} pt${l.pts !== 1 ? 's' : ''}</span>
         </div>`).join('');
-    return `<div class="overload-tooltip-title"><i class="fas fa-tasks"></i> Atividades Extras</div>${rows}`;
+    return `<div class="overload-tooltip-title"><i class="fas ${titleIcon}"></i> ${title}</div>${rows}`;
+}
+
+function buildProjectsTooltipHtml(lines) {
+    const projectLines = lines.filter(l => ['project', 'sm', 'ux_ui'].includes(l.type));
+    return _buildWorkloadTooltip(projectLines, 'Projetos', 'fa-project-diagram', 'Sem pontos de projeto');
+}
+
+function buildActivitiesTooltipHtml(lines) {
+    const activityLines = lines.filter(l => l.type === 'activity');
+    return _buildWorkloadTooltip(activityLines, 'Atividades Extras', 'fa-tasks', 'Sem atividades ativas');
 }
 
 function setupWorkloadTableTooltips() {
@@ -268,21 +269,13 @@ function renderWorkloadTable() {
 
     sortedMembers.forEach(member => {
         // --- CÁLCULOS DE DADOS ---
-        
-        // Quantos projetos o membro participa (como dev/membro)
-        const memberProjects = projects.filter(p => {
-            const alocados = p.allocated_members || []; 
-            return Array.isArray(alocados) && alocados.includes(member.id);
-        });
+
+        // Linhas que compõem a sobrecarga do membro — a mesma fonte da coluna
+        // "Sobrecarga" e do tooltip da lista de membros.
+        const lines = overloadLinesFor(member.id);
 
         // Quantos projetos o membro gerencia (Scrum Master)
         const smProjects = projects.filter(p => p.scrum_master === member.id);
-        
-        // Quantas atividades extras ativas
-        const memberActivities = extraActivities.filter(a => {
-            const alocados = a.allocated_members || [];
-            return a.status === 'ativa' && Array.isArray(alocados) && alocados.includes(member.id);
-        });
 
         const overload = member.overload || 0;
 
@@ -311,14 +304,14 @@ function renderWorkloadTable() {
         let statusBadge = '';
         let rowStyle = ''; 
 
-        if (overload >= 15) {
+        if (overload >= OVERLOAD_CRITICAL) {
             // CRÍTICO
             statusBadge = `
                 <span style="background-color: #fdece9; color: #a51d1d; padding: 4px 10px; border-radius: 12px; font-size: 0.85em; font-weight: bold; border: 1px solid #f4c9c9; white-space: nowrap;">
                     <i class="fas fa-fire"></i> Crítico
                 </span>`;
             rowStyle = 'background-color: #fffafa;'; // Fundo levemente avermelhado na linha
-        } else if (overload >= 10) {
+        } else if (overload >= OVERLOAD_WARNING) {
             // ATENÇÃO
             statusBadge = `
                 <span style="background-color: #fff1da; color: #b4600a; padding: 4px 10px; border-radius: 12px; font-size: 0.85em; font-weight: bold; border: 1px solid #f8d9a6; white-space: nowrap;">
@@ -336,9 +329,14 @@ function renderWorkloadTable() {
         const row = document.createElement('tr');
         if (rowStyle) row.style.cssText = rowStyle;
 
-        const projectsTooltip = buildProjectsTooltipHtml(memberProjects, smProjects).replace(/"/g, '&quot;');
-        const activitiesTooltip = buildActivitiesTooltipHtml(memberActivities).replace(/"/g, '&quot;');
+        const projectsTooltip = buildProjectsTooltipHtml(lines).replace(/"/g, '&quot;');
+        const activitiesTooltip = buildActivitiesTooltipHtml(lines).replace(/"/g, '&quot;');
         const earliestDeadline = getEarliestDeadlineForMember(member.id);
+
+        // Contadores das colunas: contam as mesmas linhas que os tooltips
+        // detalham, para o número e o detalhamento não discordarem.
+        const projectsCount = lines.filter(l => ['project', 'sm', 'ux_ui'].includes(l.type)).length;
+        const activitiesCount = lines.filter(l => l.type === 'activity').length;
 
         row.innerHTML = `
             <td>
@@ -351,14 +349,14 @@ function renderWorkloadTable() {
             <td style="text-align: center;">
                 <span class="badge wl-tooltip-anchor" data-wl-tooltip="${projectsTooltip}"
                       style="background-color: #f0f2f5; color: #555; border: 1px solid #ddd; min-width: 30px; cursor: default;">
-                    ${memberProjects.length + smProjects.length}
+                    ${projectsCount}
                     <i class="fas fa-info-circle" style="font-size:0.75em;opacity:0.5;margin-left:2px"></i>
                 </span>
             </td>
             <td style="text-align: center;">
                 <span class="badge wl-tooltip-anchor" data-wl-tooltip="${activitiesTooltip}"
                       style="background-color: #f0f2f5; color: #555; border: 1px solid #ddd; min-width: 30px; cursor: default;">
-                    ${memberActivities.length}
+                    ${activitiesCount}
                     <i class="fas fa-info-circle" style="font-size:0.75em;opacity:0.5;margin-left:2px"></i>
                 </span>
             </td>
@@ -411,7 +409,7 @@ function getEarliestDeadlineForMember(memberId) {
 
 // Função auxiliar de cores
 function getColorForLoad(value) {
-    if (value >= 15) return '#e23d28';
-    if (value >= 10) return '#fc9c14';
+    if (value >= OVERLOAD_CRITICAL) return '#e23d28';
+    if (value >= OVERLOAD_WARNING) return '#fc9c14';
     return '#0787cb';
 }
