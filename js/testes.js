@@ -33,6 +33,43 @@ async function loadTests() {
     }
 }
 
+// "2026-08-01" → "01/08". O ano fica implícito; a contagem regressiva ao lado
+// dá o contexto temporal.
+function _shortDateBR(iso) {
+    return _formatDateBR(iso).slice(0, 5);
+}
+
+// Célula "Período": início → prazo final, com a contagem regressiva do prazo.
+// Um teste que ainda não começou é sinalizado, já que ele não gera carga até lá.
+function buildTestPeriodCell(test) {
+    const start = test.start_date;
+    const end = test.deadline;
+
+    let range;
+    if (start && end)      range = `${_shortDateBR(start)} → ${_shortDateBR(end)}`;
+    else if (end)          range = `→ ${_shortDateBR(end)}`;
+    else if (start)        range = `${_shortDateBR(start)} → sem prazo`;
+    else                   range = '<span style="color:#aaa">Sem datas</span>';
+
+    // A contagem regressiva só faz sentido com prazo final; sem ele,
+    // formatDeadlineCountdown devolveria um "—" solto embaixo da faixa.
+    const countdown = end ? formatDeadlineCountdown(end) : '';
+
+    let notStarted = '';
+    if (start && test.status === 'em_andamento') {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (new Date(start + 'T00:00:00') > today) {
+            notStarted = '<br><span style="color:#8893a3; font-size:0.78em;"><i class="fas fa-hourglass-start"></i> Não iniciado</span>';
+        }
+    }
+
+    return `
+        <div style="font-size:0.85em; color:#444;">${range}</div>
+        ${countdown}${notStarted}
+    `;
+}
+
 /**
  * Renderiza a tabela HTML na aba de Testes
  */
@@ -43,7 +80,7 @@ function renderTests() {
     list.innerHTML = '';
     
     if (projectTests.length === 0) {
-        list.innerHTML = '<tr><td colspan="7" style="text-align:center">Nenhum teste criado.</td></tr>';
+        list.innerHTML = '<tr><td colspan="8" style="text-align:center">Nenhum teste criado.</td></tr>';
         return;
     }
 
@@ -82,7 +119,7 @@ function renderTests() {
             <td><small>${managerName || '<span class="muted">Não definido</span>'}</small></td>
             <td><small>${memberNames || 'Ninguém'}</small></td>
             <td>${t.overload_points} pts</td>
-            <td style="white-space: nowrap;">${formatDeadlineCountdown(t.deadline)}</td>
+            <td style="white-space: nowrap;">${buildTestPeriodCell(t)}</td>
             <td>${statusBadge}</td>
             <td>
                 <div style="display:flex; align-items:center;">
@@ -108,6 +145,8 @@ async function createTest(event) {
     const status = document.getElementById('testStatus').value;
     const deadlineInput = document.getElementById('testDeadline');
     const deadline = deadlineInput ? deadlineInput.value : '';
+    const startDateInput = document.getElementById('testStartDate');
+    const startDate = startDateInput ? startDateInput.value : '';
     const testManagerSelect = document.getElementById('testManager');
     const testManagerId = testManagerSelect ? testManagerSelect.value : '';
 
@@ -119,11 +158,17 @@ async function createTest(event) {
         return;
     }
 
+    if (startDate && deadline && startDate > deadline) {
+        showFloatingAlert('O início do teste não pode ser depois do prazo final.', 'error');
+        return;
+    }
+
     const payload = {
         project_id: projectId,
         name: name,
         overload_points: parseInt(points),
         status: status,
+        start_date: startDate || null,
         deadline: deadline || null,
         test_manager: testManagerId || null
     };
@@ -220,9 +265,7 @@ function editTest(id) {
     document.getElementById('testProjectSelect').value = test.project_id;
     document.getElementById('testName').value = test.name;
     document.getElementById('testPoints').value = test.overload_points;
-
-    const pointsVal = document.getElementById('testPointsVal');
-    if (pointsVal) pointsVal.textContent = test.overload_points;
+    syncTestPointsDisplay();
 
     document.getElementById('testStatus').value = test.status;
 
@@ -234,6 +277,9 @@ function editTest(id) {
     }
     const deadlineInput = document.getElementById('testDeadline');
     if (deadlineInput) deadlineInput.value = test.deadline || '';
+
+    const startDateInput = document.getElementById('testStartDate');
+    if (startDateInput) startDateInput.value = test.start_date || '';
 
     // Marca os membros já vinculados ao teste
     document.querySelectorAll('.tm-check').forEach(cb => {
@@ -368,24 +414,27 @@ function updateTestUIHelpers() {
     }
 }
 
+// Mantém o número ao lado do slider igual ao valor dele.
+function syncTestPointsDisplay() {
+    const slider = document.getElementById('testPoints');
+    const display = document.getElementById('testPointsVal');
+    if (slider && display) display.textContent = slider.value;
+}
+
 // Inicialização ao carregar o DOM
 document.addEventListener('DOMContentLoaded', () => {
-    // Configura o slider visualmente
     const slider = document.getElementById('testPoints');
-    if(slider) {
-        slider.oninput = function() { 
-            const display = document.getElementById('testPointsVal');
-            if(display) display.textContent = this.value; 
-        };
+    if (slider) {
+        slider.addEventListener('input', syncTestPointsDisplay);
     }
-    
-    // Associa o submit do formulário à função createTest
+
     const form = document.getElementById('testForm');
-    if(form) {
-        // Remove listeners antigos para evitar duplicação (boa prática em SPAs simples)
-        const newForm = form.cloneNode(true);
-        form.parentNode.replaceChild(newForm, form);
-        newForm.addEventListener('submit', createTest);
+    if (form) {
+        form.addEventListener('submit', createTest);
+
+        // O evento 'reset' dispara ANTES dos campos voltarem ao default, por isso
+        // a ressincronização precisa esperar o próximo tick.
+        form.addEventListener('reset', () => setTimeout(syncTestPointsDisplay, 0));
     }
 
     // Tenta carregar testes iniciais

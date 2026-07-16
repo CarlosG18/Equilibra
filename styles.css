@@ -204,6 +204,46 @@ body {
     margin-bottom: 7px;
 }
 
+/* Campo de senha com botão de olho. O wrapper é quem posiciona o botão —
+   .field não é position:relative e serve a outros campos. */
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper .form-control {
+    /* Espaço para o texto não passar por baixo do botão */
+    padding-right: 42px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-2);
+    cursor: pointer;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.password-toggle:hover {
+    color: var(--text-1, #1f2430);
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.password-toggle:focus-visible {
+    outline: 2px solid var(--primary, #0787cb);
+    outline-offset: 1px;
+}
+
 .login-error {
     color: var(--danger);
     font-size: 0.85rem;

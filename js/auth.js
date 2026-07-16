@@ -94,6 +94,9 @@ _supabase.auth.onAuthStateChange(async (event, session) => {
 
 // Gatilho Manual ao carregar a página (Corrigido)
 document.addEventListener('DOMContentLoaded', async () => {
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) loginForm.addEventListener('submit', handleLogin);
+
     const { data: { session } } = await _supabase.auth.getSession();
     
     // Se tiver sessão, o onAuthStateChange já vai disparar, 
@@ -113,7 +116,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 // 3. LOGIN E LOGOUT
 // ==========================================
 
-async function handleLogin() {
+// Alterna entre esconder e mostrar a senha digitada.
+function togglePasswordVisibility() {
+    const input = document.getElementById('passwordInput');
+    const button = document.getElementById('passwordToggle');
+    if (!input || !button) return;
+
+    const willShow = input.type === 'password';
+    input.type = willShow ? 'text' : 'password';
+
+    button.setAttribute('aria-pressed', String(willShow));
+    button.setAttribute('aria-label', willShow ? 'Ocultar senha' : 'Mostrar senha');
+
+    const icon = button.querySelector('i');
+    if (icon) icon.className = willShow ? 'fas fa-eye-slash' : 'fas fa-eye';
+
+    // Mantém o cursor no campo para não interromper a digitação.
+    input.focus();
+}
+
+// Chamada pelo submit do #loginForm — tanto pelo botão "Entrar" quanto por
+// Enter em qualquer campo. O preventDefault impede o GET nativo do form, que
+// recarregaria a página.
+async function handleLogin(event) {
+    if (event) event.preventDefault();
+
     const email = document.getElementById('emailInput').value;
     const password = document.getElementById('passwordInput').value;
     const errorMsg = document.getElementById('loginError');

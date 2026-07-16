@@ -23,21 +23,29 @@
             <img src="assets/logo.svg" alt="Equilibra" class="login-logo">
             <p class="login-subtitle">Gestão de capacidade e alocação para times ágeis</p>
 
-            <div class="field">
-                <label for="emailInput">Email</label>
-                <input type="email" id="emailInput" class="form-control" placeholder="voce@ejectufrn.com.br"
-                    autocomplete="username">
-            </div>
+            <form id="loginForm">
+                <div class="field">
+                    <label for="emailInput">Email</label>
+                    <input type="email" id="emailInput" class="form-control" placeholder="voce@ejectufrn.com.br"
+                        autocomplete="username">
+                </div>
 
-            <div class="field">
-                <label for="passwordInput">Senha</label>
-                <input type="password" id="passwordInput" class="form-control" placeholder="••••••••"
-                    autocomplete="current-password">
-            </div>
+                <div class="field">
+                    <label for="passwordInput">Senha</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="passwordInput" class="form-control" placeholder="••••••••"
+                            autocomplete="current-password">
+                        <button type="button" id="passwordToggle" class="password-toggle"
+                            onclick="togglePasswordVisibility()" aria-label="Mostrar senha" aria-pressed="false">
+                            <i class="fas fa-eye" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
 
-            <button onclick="handleLogin()" class="btn btn-primary btn-block">
-                Entrar
-            </button>
+                <button type="submit" class="btn btn-primary btn-block">
+                    Entrar
+                </button>
+            </form>
             <p id="loginError" class="login-error"></p>
         </div>
         <div class="login-foot">
@@ -324,7 +332,7 @@
                                             <th>Gestor</th>
                                             <th>Membros alocados</th>
                                             <th>Carga</th>
-                                            <th>Prazo</th>
+                                            <th>Período</th>
                                             <th>Status</th>
                                             <th>Ações</th>
                                         </tr>
@@ -353,7 +361,6 @@
                                         <tr>
                                             <th>Projeto</th>
                                             <th>Scrum Master</th>
-                                            <th>E-mail</th>
                                             <th>Ações</th>
                                         </tr>
                                     </thead>
@@ -659,7 +666,13 @@
                     </div>
 
                     <div class="form-group">
-                        <label><i class="fas fa-calendar-alt"></i> Prazo do teste</label>
+                        <label for="testStartDate"><i class="fas fa-play"></i> Início do teste</label>
+                        <input type="date" id="testStartDate" class="form-control">
+                        <small style="color:var(--text-2,#5b6273)">Antes desta data o teste não gera sobrecarga.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-alt"></i> Prazo final do teste</label>
                         <div class="deadline-picker">
                             <div class="deadline-mode-toggle">
                                 <button type="button" class="deadline-mode-btn active" data-mode="date"><i class="fas fa-calendar-day"></i> Data</button>

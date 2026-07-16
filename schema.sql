@@ -129,6 +129,14 @@ ALTER TABLE project_tests ADD COLUMN IF NOT EXISTS test_manager UUID REFERENCES 
 CREATE INDEX IF NOT EXISTS idx_project_tests_test_manager ON project_tests(test_manager);
 
 -- ==========================================
+-- MIGRAÇÃO: data de início dos testes
+-- O par é start_date (início) + deadline (prazo final). Um teste só gera
+-- sobrecarga depois de iniciado — ver js/overload.js. Testes já existentes
+-- ficam com start_date NULL e continuam pontuando normalmente.
+-- ==========================================
+ALTER TABLE project_tests ADD COLUMN IF NOT EXISTS start_date DATE;
+
+-- ==========================================
 -- MIGRAÇÃO: tipo do projeto (classificação + validação de equipe mínima)
 -- Execute no SQL Editor do Supabase se a tabela projects já existir
 -- ==========================================

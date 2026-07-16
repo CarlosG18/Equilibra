@@ -146,7 +146,7 @@ function renderDashboardLists() {
             return `
                 <div style="margin-bottom: 10px; font-size: 0.9em;">
                     <div style="font-weight: bold; color: var(--purple);">${name}</div>
-                    <div style="color: #666; font-size: 0.85em;">Gerencia: ${projectsList}</div>
+                    <div style="color: #666; font-size: 0.85em;">${projectsList}</div>
                 </div>
             `;
         }).join('') || '<small>Nenhum SM alocado.</small>';
