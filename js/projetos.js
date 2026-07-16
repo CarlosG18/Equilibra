@@ -369,7 +369,7 @@ function renderProjects() {
     projects.forEach(proj => {
         const sm = members.find(m => m.id === proj.scrum_master);
         const teamIds = proj.allocated_members || [];
-        const overloadClass = getOverloadClassForMember(proj.overload_points);
+        const overloadClass = getOverloadClassForProject(proj.overload_points || 0);
         const fillPct = Math.min(100, (proj.overload_points || 0) * 10);
 
         const memberNames = teamIds

@@ -43,7 +43,7 @@ function renderTests() {
     list.innerHTML = '';
     
     if (projectTests.length === 0) {
-        list.innerHTML = '<tr><td colspan="6" style="text-align:center">Nenhum teste criado.</td></tr>';
+        list.innerHTML = '<tr><td colspan="7" style="text-align:center">Nenhum teste criado.</td></tr>';
         return;
     }
 
@@ -60,6 +60,12 @@ function renderTests() {
             memberNames = `${t.members.length} membro(s)`;
         }
 
+        let managerName = '';
+        if (t.test_manager && typeof members !== 'undefined' && Array.isArray(members)) {
+            const mgr = members.find(x => x.id === t.test_manager);
+            managerName = mgr ? mgr.name : '';
+        }
+
         const statusBadge = t.status === 'em_andamento' 
             ? '<span class="badge badge-active">Em Andamento</span>'
             : '<span class="badge badge-done">Concluído</span>';
@@ -73,6 +79,7 @@ function renderTests() {
         tr.innerHTML = `
             <td><strong>${t.name}</strong></td>
             <td>${t.projectName}</td>
+            <td><small>${managerName || '<span class="muted">Não definido</span>'}</small></td>
             <td><small>${memberNames || 'Ninguém'}</small></td>
             <td>${t.overload_points} pts</td>
             <td style="white-space: nowrap;">${formatDeadlineCountdown(t.deadline)}</td>
@@ -101,6 +108,8 @@ async function createTest(event) {
     const status = document.getElementById('testStatus').value;
     const deadlineInput = document.getElementById('testDeadline');
     const deadline = deadlineInput ? deadlineInput.value : '';
+    const testManagerSelect = document.getElementById('testManager');
+    const testManagerId = testManagerSelect ? testManagerSelect.value : '';
 
     // Pega todos os checkboxes marcados
     const checks = document.querySelectorAll('.tm-check:checked');
@@ -115,7 +124,8 @@ async function createTest(event) {
         name: name,
         overload_points: parseInt(points),
         status: status,
-        deadline: deadline || null
+        deadline: deadline || null,
+        test_manager: testManagerId || null
     };
 
     let testId;
@@ -215,6 +225,9 @@ function editTest(id) {
     if (pointsVal) pointsVal.textContent = test.overload_points;
 
     document.getElementById('testStatus').value = test.status;
+
+    const testManagerSelect = document.getElementById('testManager');
+    if (testManagerSelect) testManagerSelect.value = test.test_manager || '';
 
     if (typeof resetDeadlinePicker === 'function') {
         resetDeadlinePicker('testDeadline');
@@ -331,7 +344,16 @@ function updateTestUIHelpers() {
             projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
     }
 
-    // 2. Checkboxes de Membros
+    // 2. Select de Gestor de Testes
+    const tManager = document.getElementById('testManager');
+    if (tManager && typeof members !== 'undefined' && Array.isArray(members)) {
+        const currentValue = tManager.value;
+        tManager.innerHTML = '<option value="">Nenhum gestor definido</option>' +
+            members.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+        tManager.value = currentValue;
+    }
+
+    // 3. Checkboxes de Membros
     const tCheckContainer = document.getElementById('testMembersChecks');
     // Verifica se 'members' (global) existe e tem dados
     if (tCheckContainer && typeof members !== 'undefined' && Array.isArray(members)) {

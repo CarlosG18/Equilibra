@@ -78,114 +78,12 @@ function updateFullInterface() {
 // 3. LÓGICA DE NEGÓCIO (CÁLCULOS)
 // ==========================================
 
+// Recalcula a sobrecarga atual de todos os membros.
+// As regras de pontuação vivem em js/overload.js — este é só o ponto de
+// aplicação sobre o estado global.
 function calculateOverload() {
-    // 0. Zera a sobrecarga de todos antes de recalcular
-    members.forEach(m => m.overload = 0);
-
-    // 1. Soma pontos de PROJETOS
-    projects.forEach(proj => {
-        // Garante que é um array
-        const memberIds = proj.allocated_members || []; 
-        const points = parseInt(proj.overload_points) || 0;
-
-        // Soma para a equipe de desenvolvimento — exceto UX/UI, que não fica
-        // alocado o projeto inteiro como Front-end/Back-end. A sobrecarga do
-        // UX/UI é tratada à parte (passo 1.5), só durante "Em andamento".
-        memberIds.forEach(mId => {
-            const member = members.find(m => m.id === mId);
-            if (member && member.subarea !== 'ux_ui') {
-                member.overload += points;
-            }
-        });
-
-        // Soma para o Scrum Master — peso proporcional à complexidade do projeto
-        // Fórmula: max(1, round(points * 0.4)) → 1 pt p/ baixa, 2 p/ média, 3-4 p/ alta complexidade
-        const smId = proj.scrum_master_id || proj.scrum_master;
-        if (smId) {
-            const sm = members.find(m => m.id === smId);
-            if (sm) {
-                const smPoints = Math.max(1, Math.round(points * 0.4)) + 2;
-                sm.overload += smPoints;
-            }
-        }
-    });
-
-    // 1.5. Sobrecarga temporária do UX/UI: só conta enquanto o status do
-    // projeto for exatamente "Em andamento" E o prazo em sprints não tiver
-    // vencido. Em qualquer outro status (não iniciado, finalizado, em
-    // correção) o membro continua contando como UX/UI da equipe para
-    // próximas atividades, mas sem pontos de sobrecarga.
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    projects.forEach(proj => {
-        if (proj.ux_ui_status !== 'em_andamento') return;
-        if (!proj.ux_ui_deadline || !proj.ux_ui_points || !proj.ux_ui_member_id) return;
-        const deadline = new Date(proj.ux_ui_deadline + 'T00:00:00');
-        if (deadline < today) return; // prazo vencido: pontos não contam mais
-
-        // Aplica só ao membro de UX/UI selecionado para este ciclo — um projeto
-        // pode ter mais de um UX/UI alocado, mas só um está "trabalhando" agora.
-        const member = members.find(m => m.id === proj.ux_ui_member_id);
-        if (member) member.overload += parseInt(proj.ux_ui_points) || 0;
-    });
-
-    // 2. Soma ATIVIDADES EXTRAS (CORRIGIDO PARA ARRAY)
-    extraActivities.forEach(act => {
-        if (act.status === 'ativa') {
-            const points = parseInt(act.points) || 0;
-            
-            // Verifica se é o novo formato (Array de membros)
-            if (act.allocated_members && Array.isArray(act.allocated_members)) {
-                act.allocated_members.forEach(mId => {
-                    const member = members.find(m => m.id === mId);
-                    if (member) {
-                        member.overload += points;
-                    }
-                });
-            } 
-            // Suporte para formato antigo (caso tenha sobrado algo no banco)
-            else if (act.member_id) {
-                const member = members.find(m => m.id === act.member_id);
-                if (member) {
-                    member.overload += points;
-                }
-            }
-        }
-    });
-
-    // 3. Soma TESTES (ADICIONADO)
-    // Verifica se a variável global projectTests existe (vinda do testes.js)
-    if (typeof projectTests !== 'undefined' && Array.isArray(projectTests)) {
-        projectTests.forEach(test => {
-            if (test.status === 'em_andamento') {
-                const points = parseInt(test.overload_points) || 0;
-
-                // Itera sobre os membros do teste
-                if (test.members && Array.isArray(test.members)) {
-                    test.members.forEach(mId => {
-                        const member = members.find(m => m.id === mId);
-                        if (member) {
-                            member.overload += points;
-                        }
-                    });
-                }
-            }
-        });
-    }
-
-    // 4. Bônus de cargo: Gerente recebe +5 pontos pela responsabilidade de gerência
     members.forEach(m => {
-        if (m.role && m.role.toLowerCase().includes('gerente')) {
-            m.overload += 5;
-        }
-    });
-
-    // 5. Carga pessoal: trabalho (+4) e matérias (round(qtd × 0.5) — cada 2 matérias = 1 pt)
-    members.forEach(m => {
-        if (m.trabalho) m.overload += 4;
-        const mats = parseInt(m.num_materias) || 0;
-        if (mats > 0) m.overload += Math.round(mats * 0.5);
+        m.overload = overloadTotalFor(m.id);
     });
 }
 
@@ -247,7 +145,7 @@ function updateAlertLists() {
     const availDiv = document.getElementById('mostAvailableMembers');
 
     if (alertDiv) {
-        const overloaded = members.filter(m => m.overload > 15);
+        const overloaded = members.filter(m => m.overload >= OVERLOAD_CRITICAL);
         alertDiv.innerHTML = overloaded.length ? '' : 'Nenhum membro em estado crítico.';
         overloaded.forEach(m => {
             alertDiv.innerHTML += `<div class="alert-item text-danger"><i class="fas fa-exclamation-circle"></i> ${m.name} (${m.overload} pts)</div>`;
@@ -255,7 +153,7 @@ function updateAlertLists() {
     }
 
     if (availDiv) {
-        const available = members.filter(m => m.overload < 8).slice(0, 5); // Top 5 livres
+        const available = members.filter(m => m.overload < OVERLOAD_WARNING).slice(0, 5); // Top 5 livres
         availDiv.innerHTML = available.length ? '' : 'Todos estão ocupados.';
         available.forEach(m => {
             availDiv.innerHTML += `<div class="avail-item text-success"><i class="fas fa-check"></i> ${m.name} (${m.overload} pts)</div>`;
@@ -270,12 +168,6 @@ function updateAlertLists() {
 function setText(id, value) {
     const el = document.getElementById(id);
     if (el) el.textContent = value;
-}
-
-function getOverloadClassForMember(points) {
-    if (points > 15) return 'high-overload';
-    if (points > 10) return 'medium-overload';
-    return 'low-overload';
 }
 
 function showFloatingAlert(message, type = 'success') {
