@@ -139,6 +139,16 @@
                             </svg>
                             <span>Atualizar</span>
                         </button>
+                        <div class="notif-menu" id="notifMenu">
+                            <button class="icon-btn notif-trigger" id="notifTrigger" aria-haspopup="true" aria-expanded="false" aria-label="Notificações">
+                                <i class="fas fa-bell"></i>
+                                <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+                            </button>
+                            <div class="dropdown notif-dropdown" id="notifDropdown" role="menu">
+                                <div class="dropdown-header"><strong>Notificações</strong></div>
+                                <div id="notifList" class="notif-list"></div>
+                            </div>
+                        </div>
                         <div class="user-menu" id="userMenu">
                             <button class="user-trigger" id="userTrigger" aria-haspopup="true" aria-expanded="false">
                                 <span class="avatar avatar-sm"><i class="fas fa-user"></i></span>
@@ -250,7 +260,12 @@
                         </div>
 
                         <div class="card">
-                            <h2><i class="fas fa-list-ol"></i> Membros e suas cargas</h2>
+                            <div class="card-header-row">
+                                <h2><i class="fas fa-list-ol"></i> Membros e suas cargas</h2>
+                                <button class="btn btn-ghost-line btn-small" onclick="exportOverloadReport()">
+                                    <i class="fas fa-file-csv"></i> Exportar CSV
+                                </button>
+                            </div>
                             <div class="table-container">
                                 <table id="membersWorkloadTable">
                                     <thead>
@@ -276,9 +291,14 @@
                                 <h2><i class="fas fa-users"></i> Equipe</h2>
                                 <p>Cadastre e gerencie os membros do time.</p>
                             </div>
-                            <button class="btn-add-floating" onclick="openModal('modalMember')">
-                                <i class="fas fa-plus"></i> Novo membro
-                            </button>
+                            <div class="header-actions-buttons">
+                                <button class="btn btn-ghost-line" onclick="exportMembersReport()">
+                                    <i class="fas fa-file-csv"></i> Exportar CSV
+                                </button>
+                                <button class="btn-add-floating" onclick="openModal('modalMember')">
+                                    <i class="fas fa-plus"></i> Novo membro
+                                </button>
+                            </div>
                         </div>
                         <div class="card card-flush">
                             <div class="table-container">
@@ -304,9 +324,14 @@
                                 <h2><i class="fas fa-diagram-project"></i> Projetos</h2>
                                 <p>Defina pesos e aloque o time em cada projeto.</p>
                             </div>
-                            <button class="btn-add-floating" onclick="openModal('modalProject')">
-                                <i class="fas fa-plus"></i> Novo projeto
-                            </button>
+                            <div class="header-actions-buttons">
+                                <button class="btn btn-ghost-line" onclick="exportProjectsReport()">
+                                    <i class="fas fa-file-csv"></i> Exportar CSV
+                                </button>
+                                <button class="btn-add-floating" onclick="openModal('modalProject')">
+                                    <i class="fas fa-plus"></i> Novo projeto
+                                </button>
+                            </div>
                         </div>
                         <div id="projectsList" class="proj-grid"></div>
                     </section>
@@ -377,9 +402,14 @@
                                 <h2><i class="fas fa-list-check"></i> Atividades extras</h2>
                                 <p>Cargas que costumam ficar invisíveis: GTs, mentorias, suporte.</p>
                             </div>
-                            <button class="btn-add-floating btn-add-activity" onclick="openModal('modalActivity')">
-                                <i class="fas fa-plus"></i> Nova atividade
-                            </button>
+                            <div class="header-actions-buttons">
+                                <button class="btn btn-ghost-line" onclick="exportActivitiesReport()">
+                                    <i class="fas fa-file-csv"></i> Exportar CSV
+                                </button>
+                                <button class="btn-add-floating btn-add-activity" onclick="openModal('modalActivity')">
+                                    <i class="fas fa-plus"></i> Nova atividade
+                                </button>
+                            </div>
                         </div>
                         <div class="card card-flush">
                             <div class="table-container">
@@ -547,6 +577,12 @@
                             <option value="lp_simples">Landing Page Simples</option>
                             <option value="lp_complexa">Landing Page Complexa</option>
                             <option value="sistema">Sistema</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="projectManager"><i class="fas fa-user-tie"></i> Gerente responsável</label>
+                        <select id="projectManager" class="form-control">
+                            <option value="">— Nenhum —</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -850,6 +886,8 @@
     <script src="js/uxUiStatus.js"></script>
     <script src="js/overload.js"></script>
     <script src="js/atividades_extras.js"></script>
+    <script src="js/notificacoes.js"></script>
+    <script src="js/relatorios.js"></script>
     <script src="js/app.js"></script>
     <script src="js/membros.js"></script>
     <script src="js/projetos.js"></script>

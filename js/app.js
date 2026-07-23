@@ -66,6 +66,8 @@ function updateFullInterface() {
         updateAllocationCheckboxes();
     }
     updateScrumManagementSelects();
+    if (typeof updateProjectManagerSelect === 'function') updateProjectManagerSelect();
+    if (typeof renderNotifications === 'function') renderNotifications();
     updateActivityAllocationCheckboxes(); // Para selecionar o membro na aba atividades
     renderActivitiesSummary();
     updateDashboard();

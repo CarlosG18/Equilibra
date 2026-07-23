@@ -270,6 +270,27 @@ if (uxUiRegistrarBtn) {
     });
 }
 
+// GERENTE RESPONSÁVEL
+
+// Preenche o select de gerente responsável apenas com membros de cargo "Gerente".
+function updateProjectManagerSelect() {
+    const select = document.getElementById('projectManager');
+    if (!select) return;
+
+    const currentValue = select.value;
+    select.innerHTML = '<option value="">— Nenhum —</option>';
+
+    members
+        .filter(m => m.role === 'Gerente')
+        .forEach(m => {
+            select.innerHTML += `<option value="${m.id}">${m.name}</option>`;
+        });
+
+    if (currentValue && members.some(m => m.id === currentValue && m.role === 'Gerente')) {
+        select.value = currentValue;
+    }
+}
+
 // FORMS
 
 // --- LISTENER DO FORMULÁRIO DE PROJETO (CRIAR E EDITAR) ---
@@ -288,6 +309,8 @@ if (projectForm) {
         const points = pointsInput ? pointsInput.value : 0;
         const deadlineInput = document.getElementById('projectDeadline');
         const deadline = deadlineInput ? deadlineInput.value : '';
+        const managerInput = document.getElementById('projectManager');
+        const managerId = managerInput ? managerInput.value : '';
 
         const selectedMembers = [];
         document.querySelectorAll('input[name="projectMembers"]:checked').forEach(cb => {
@@ -301,9 +324,9 @@ if (projectForm) {
 
         try {
             if (editingProjectId) {
-                await _salvarEdicaoProjeto(editingProjectId, name, desc, points, selectedMembers, deadline, type);
+                await _salvarEdicaoProjeto(editingProjectId, name, desc, points, selectedMembers, deadline, type, managerId);
             } else {
-                await _criarProjeto(name, desc, points, selectedMembers, this, deadline, type);
+                await _criarProjeto(name, desc, points, selectedMembers, this, deadline, type, managerId);
             }
         } catch (err) {
             console.error("Erro no processamento:", err);
@@ -317,8 +340,8 @@ if (projectForm) {
     });
 }
 
-async function _criarProjeto(name, desc, points, selectedMembers, form, deadline, type) {
-    const res = await ProjectService.adicionarProjeto(name, desc, points, null, selectedMembers, deadline, type);
+async function _criarProjeto(name, desc, points, selectedMembers, form, deadline, type, managerId) {
+    const res = await ProjectService.adicionarProjeto(name, desc, points, null, selectedMembers, deadline, type, managerId);
     if (res.success) {
         projects.push(res.data);
         showFloatingAlert('Projeto criado com sucesso!');
@@ -329,11 +352,11 @@ async function _criarProjeto(name, desc, points, selectedMembers, form, deadline
     }
 }
 
-async function _salvarEdicaoProjeto(id, name, desc, points, selectedMembers, deadline, type) {
+async function _salvarEdicaoProjeto(id, name, desc, points, selectedMembers, deadline, type, managerId) {
     const originalProject = projects.find(p => p.id === id);
     const currentScrumMasterId = originalProject ? originalProject.scrum_master : null;
 
-    const res = await ProjectService.atualizarProjeto(id, name, desc, points, currentScrumMasterId, selectedMembers, deadline, type);
+    const res = await ProjectService.atualizarProjeto(id, name, desc, points, currentScrumMasterId, selectedMembers, deadline, type, managerId);
     if (res.success) {
         const index = projects.findIndex(p => p.id === id);
         if (index !== -1) projects[index] = res.data;
@@ -368,6 +391,7 @@ function renderProjects() {
 
     projects.forEach(proj => {
         const sm = members.find(m => m.id === proj.scrum_master);
+        const manager = members.find(m => m.id === proj.manager_id);
         const teamIds = proj.allocated_members || [];
         const overloadClass = getOverloadClassForProject(proj.overload_points || 0);
         const fillPct = Math.min(100, (proj.overload_points || 0) * 10);
@@ -393,6 +417,9 @@ function renderProjects() {
                     ${sm
                         ? `<span class="proj-meta-item"><i class="fas fa-user-shield"></i>${sm.name}</span>`
                         : `<span class="proj-meta-item proj-meta-empty"><i class="fas fa-user-shield"></i>Sem SM</span>`}
+                    ${manager
+                        ? `<span class="proj-meta-item"><i class="fas fa-user-tie"></i>${manager.name}</span>`
+                        : `<span class="proj-meta-item proj-meta-empty"><i class="fas fa-user-tie"></i>Sem gerente</span>`}
                     <span class="proj-meta-item proj-meta-members ${teamIds.length === 0 ? 'proj-meta-empty' : ''}">
                         <i class="fas fa-users"></i>${teamIds.length > 0 ? `${teamIds.length} membro${teamIds.length !== 1 ? 's' : ''}` : 'Sem equipe'}
                     </span>
@@ -497,6 +524,13 @@ function editProject(id) {
     const smSelect = document.getElementById('scrumMasterSelect');
     if (smSelect) {
         smSelect.value = project.scrum_master || ""; // Seleciona o ID ou vazio
+    }
+
+    // 2b. Preencher Gerente responsável
+    updateProjectManagerSelect();
+    const managerSelect = document.getElementById('projectManager');
+    if (managerSelect) {
+        managerSelect.value = project.manager_id || "";
     }
 
     // 3. Preencher Membros Alocados (Checkboxes) com ranking inteligente

@@ -119,7 +119,7 @@ const ProjectService = {
     // --- 3. CRUD DE PROJETOS (Com Correção de Scrum Master) ---
     // ==========================================
 
-    async adicionarProjeto(name, description, overloadPoints, scrumMasterId, allocatedMembersIds, deadline, type) {
+    async adicionarProjeto(name, description, overloadPoints, scrumMasterId, allocatedMembersIds, deadline, type, managerId) {
         if (!type) return { success: false, error: 'Tipo do projeto é obrigatório.' };
 
         const { data, error } = await _supabase
@@ -131,7 +131,8 @@ const ProjectService = {
                 scrum_master: scrumMasterId || null,
                 allocated_members: allocatedMembersIds,
                 deadline: deadline || null,
-                type
+                type,
+                manager_id: managerId || null
             }])
             .select();
 
@@ -139,7 +140,7 @@ const ProjectService = {
         return { success: true, data: data[0] };
     },
 
-    async atualizarProjeto(id, name, description, overloadPoints, scrumMasterId, allocatedMembersIds, deadline, type) {
+    async atualizarProjeto(id, name, description, overloadPoints, scrumMasterId, allocatedMembersIds, deadline, type, managerId) {
         if (!type) return { success: false, error: 'Tipo do projeto é obrigatório.' };
 
         const updateData = {
@@ -149,7 +150,8 @@ const ProjectService = {
             scrum_master: scrumMasterId || null,
             allocated_members: allocatedMembersIds,
             deadline: deadline || null,
-            type
+            type,
+            manager_id: managerId || null
         };
 
         const { data, error } = await _supabase

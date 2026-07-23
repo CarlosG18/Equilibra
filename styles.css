@@ -539,6 +539,120 @@ body {
     gap: 10px;
 }
 
+/* ---------- Notificações (sino + dropdown) ---------- */
+.notif-menu {
+    position: relative;
+}
+
+.notif-trigger {
+    position: relative;
+}
+
+.notif-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    display: grid;
+    place-items: center;
+    background: var(--danger, #a51d1d);
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 1;
+    border-radius: 50px;
+    border: 2px solid var(--surface);
+}
+
+.notif-menu.open .notif-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.notif-dropdown {
+    width: 320px;
+    max-width: 90vw;
+    padding: 6px 0 6px;
+}
+
+.notif-dropdown .dropdown-header {
+    padding: 8px 14px 10px;
+}
+
+.notif-list {
+    max-height: 360px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.notif-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 14px;
+    border: none;
+    background: none;
+    font-family: var(--font);
+    text-align: left;
+    cursor: pointer;
+    transition: var(--t);
+}
+
+.notif-item:hover {
+    background: var(--canvas);
+}
+
+.notif-item-icon {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    font-size: 0.85rem;
+}
+
+.notif-item-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.notif-item-title {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.notif-item-message {
+    font-size: 0.76rem;
+    color: var(--text-3);
+}
+
+.notif-empty {
+    text-align: center;
+    padding: 32px 20px;
+    color: var(--text-3);
+}
+
+.notif-empty i {
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+    display: block;
+    opacity: 0.4;
+    color: var(--blue-strong, #0787cb);
+}
+
+.notif-empty p {
+    font-size: 0.84rem;
+}
+
 /* ---------- User menu (dropdown) ---------- */
 .user-menu {
     position: relative;
@@ -916,6 +1030,26 @@ body {
     gap: 16px;
     margin-bottom: 18px;
     flex-wrap: wrap;
+}
+
+.header-actions-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.card-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.card-header-row h2 {
+    margin-bottom: 0;
 }
 
 .header-actions-text h2 {

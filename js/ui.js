@@ -45,27 +45,31 @@
         if (window.innerWidth > 1024) closeSidebar();
     });
 
-    // ---- Menu do usuário (dropdown) ----
-    const userTrigger = document.getElementById('userTrigger');
-    const userMenu = document.getElementById('userMenu');
+    // ---- Dropdowns do topbar (menu do usuário, notificações) ----
+    function setupDropdown(triggerId, menuId) {
+        const trigger = document.getElementById(triggerId);
+        const menu = document.getElementById(menuId);
+        if (!trigger || !menu) return;
 
-    if (userTrigger && userMenu) {
-        userTrigger.addEventListener('click', (e) => {
+        trigger.addEventListener('click', (e) => {
             e.stopPropagation();
-            const open = userMenu.classList.toggle('open');
-            userTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+            const open = menu.classList.toggle('open');
+            trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
         });
         document.addEventListener('click', (e) => {
-            if (!userMenu.contains(e.target)) {
-                userMenu.classList.remove('open');
-                userTrigger.setAttribute('aria-expanded', 'false');
+            if (!menu.contains(e.target)) {
+                menu.classList.remove('open');
+                trigger.setAttribute('aria-expanded', 'false');
             }
         });
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                userMenu.classList.remove('open');
-                userTrigger.setAttribute('aria-expanded', 'false');
+                menu.classList.remove('open');
+                trigger.setAttribute('aria-expanded', 'false');
             }
         });
     }
+
+    setupDropdown('userTrigger', 'userMenu');
+    setupDropdown('notifTrigger', 'notifMenu');
 })();

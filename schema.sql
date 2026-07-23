@@ -195,6 +195,13 @@ BEGIN
 END $$;
 
 -- ==========================================
+-- MIGRAÇÃO: gerente responsável pelo projeto
+-- Execute no SQL Editor do Supabase se a tabela projects já existir
+-- ==========================================
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS manager_id UUID REFERENCES members(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_projects_manager_id ON projects(manager_id);
+
+-- ==========================================
 -- ROW LEVEL SECURITY (opcional — ative se quiser
 -- que cada usuário veja apenas seus próprios dados)
 -- ==========================================
