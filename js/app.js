@@ -74,6 +74,7 @@ function updateFullInterface() {
     renderScrumMasters();
     renderActivities();
     if (typeof renderAnalises === 'function') renderAnalises();
+    if (typeof loadSituationReportsOverview === 'function') loadSituationReportsOverview();
 }
 
 // ==========================================
@@ -202,6 +203,29 @@ function showFloatingAlert(message, type = 'success') {
     }, 4000);
 }
 
+// Sub-estrutura da navbar: "Projetos" agrupa "Configurações" (aba projects,
+// função original) e "Relatórios de Projetos" (aba situationReports).
+const NAV_SUBMENU_CHILDREN = {
+    navParentProjects: ['projects', 'situationReports'],
+};
+
+function toggleNavSubmenu(parentId) {
+    const parent = document.getElementById(parentId);
+    if (parent) parent.classList.toggle('open');
+}
+
+// Mantém a sub-estrutura aberta e o item-pai destacado quando uma das
+// abas filhas está ativa.
+function updateNavParentState(activeTabId) {
+    Object.entries(NAV_SUBMENU_CHILDREN).forEach(([parentId, children]) => {
+        const parent = document.getElementById(parentId);
+        if (!parent) return;
+        const isChildActive = children.includes(activeTabId);
+        parent.classList.toggle('has-active-child', isChildActive);
+        if (isChildActive) parent.classList.add('open');
+    });
+}
+
 function setupTabNavigation() {
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabIndicator = document.getElementById('tabIndicator');
@@ -259,8 +283,18 @@ function setupTabNavigation() {
             else if (tabId === 'analises') {
                 if(typeof renderAnalises === 'function') renderAnalises();
             }
+            else if (tabId === 'situationReports') {
+                if(typeof loadSituationReportsOverview === 'function') loadSituationReportsOverview();
+            }
+
+            // 5. UI: Se a aba pertence à sub-estrutura de "Projetos" (Configurações /
+            // Relatórios de Projetos), marca o item-pai como aberto/ativo.
+            updateNavParentState(tabId);
         });
     });
+
+    // Reabre a sub-estrutura de "Projetos" se a página carregar numa dessas abas.
+    updateNavParentState(document.querySelector('.tab-button.active')?.getAttribute('data-tab'));
 
     // Ajusta o indicador se o usuário redimensionar a janela
     window.addEventListener('resize', () => {

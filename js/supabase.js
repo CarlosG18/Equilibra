@@ -322,5 +322,77 @@ const ProjectService = {
         const { error } = await _supabase.from('extra_activities').delete().eq('id', id);
         if (error) return { success: false, error: error.message };
         return { success: true };
+    },
+
+    // ==========================================
+    // --- 5. RELATÓRIOS DE SITUAÇÃO DO PROJETO ---
+    // ==========================================
+
+    async buscarHistoricoSituacao(projectId) {
+        const { data, error } = await _supabase
+            .from('project_situation_reports')
+            .select('*')
+            .eq('project_id', projectId)
+            .order('report_date', { ascending: false })
+            .order('id', { ascending: false });
+
+        if (error) return { success: false, error: error.message };
+        return { success: true, data: data || [] };
+    },
+
+    // Última entrada de cada projeto (para a listagem da aba de relatórios).
+    // Uma única query com todas as entradas + ordenação é mais simples aqui
+    // do que N queries por projeto; o volume de entradas é baixo.
+    async buscarUltimasSituacoes() {
+        const { data, error } = await _supabase
+            .from('project_situation_reports')
+            .select('*')
+            .order('report_date', { ascending: false })
+            .order('id', { ascending: false });
+
+        if (error) return { success: false, error: error.message };
+        return { success: true, data: data || [] };
+    },
+
+    async adicionarSituacaoProjeto(projectId, reportDate, progressSummary, mainIssue, pipefyUpdated, ataFilled, statusReportSent) {
+        const { data, error } = await _supabase
+            .from('project_situation_reports')
+            .insert([{
+                project_id: projectId,
+                report_date: reportDate || new Date().toISOString().split('T')[0],
+                progress_summary: progressSummary,
+                main_issue: mainIssue || null,
+                pipefy_updated: !!pipefyUpdated,
+                ata_filled: !!ataFilled,
+                status_report_sent: !!statusReportSent,
+            }])
+            .select();
+
+        if (error) return { success: false, error: error.message };
+        return { success: true, data: data[0] };
+    },
+
+    async atualizarSituacaoProjeto(id, reportDate, progressSummary, mainIssue, pipefyUpdated, ataFilled, statusReportSent) {
+        const { data, error } = await _supabase
+            .from('project_situation_reports')
+            .update({
+                report_date: reportDate,
+                progress_summary: progressSummary,
+                main_issue: mainIssue || null,
+                pipefy_updated: !!pipefyUpdated,
+                ata_filled: !!ataFilled,
+                status_report_sent: !!statusReportSent,
+            })
+            .eq('id', id)
+            .select();
+
+        if (error) return { success: false, error: error.message };
+        return { success: true, data: data[0] };
+    },
+
+    async removerSituacaoProjeto(id) {
+        const { error } = await _supabase.from('project_situation_reports').delete().eq('id', id);
+        if (error) return { success: false, error: error.message };
+        return { success: true };
     }
 };
