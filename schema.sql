@@ -202,6 +202,41 @@ ALTER TABLE projects ADD COLUMN IF NOT EXISTS manager_id UUID REFERENCES members
 CREATE INDEX IF NOT EXISTS idx_projects_manager_id ON projects(manager_id);
 
 -- ==========================================
+-- TABELA: project_situation_reports
+-- Histórico de atualizações de situação de cada projeto (uma entrada por
+-- período/sprint), usado para gerar o relatório em PDF do projeto.
+-- Usada em: supabase.js (adicionarSituacaoProjeto, atualizarSituacaoProjeto,
+--           removerSituacaoProjeto, buscarHistoricoSituacao)
+--           js/relatoriosSituacao.js (aba "Relatórios de Projetos")
+-- O prazo do relatório NÃO fica aqui — vem de projects.deadline, para não
+-- duplicar/divergir do prazo já usado no resto do sistema.
+-- ==========================================
+CREATE TABLE IF NOT EXISTS project_situation_reports (
+    id                  SERIAL      PRIMARY KEY,
+    project_id          UUID        REFERENCES projects(id) ON DELETE CASCADE,
+    report_date         DATE        NOT NULL DEFAULT CURRENT_DATE,
+    progress_summary    TEXT        NOT NULL,
+    main_issue          TEXT,
+    pipefy_updated      BOOLEAN     NOT NULL DEFAULT FALSE,
+    ata_filled          BOOLEAN     NOT NULL DEFAULT FALSE,
+    status_report_sent  BOOLEAN     NOT NULL DEFAULT FALSE,
+    created_at          TIMESTAMP   DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_situation_reports_project_id ON project_situation_reports(project_id);
+
+-- ==========================================
+-- MIGRAÇÃO: desativar RLS em project_situation_reports
+-- Algumas ferramentas (ex: painel do Supabase) ativam RLS automaticamente ao
+-- criar uma tabela pela UI. Sem nenhuma policy, isso bloqueia todo INSERT/
+-- UPDATE/DELETE feito pela chave anônima ("new row violates row-level
+-- security policy"). O app não tem autenticação por usuário/linha — nenhuma
+-- outra tabela do schema usa RLS — então mantemos a mesma consistência aqui.
+-- Execute no SQL Editor do Supabase se a tabela já existir com RLS ativo.
+-- ==========================================
+ALTER TABLE project_situation_reports DISABLE ROW LEVEL SECURITY;
+
+-- ==========================================
 -- ROW LEVEL SECURITY (opcional — ative se quiser
 -- que cada usuário veja apenas seus próprios dados)
 -- ==========================================

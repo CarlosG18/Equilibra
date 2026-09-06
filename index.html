@@ -78,9 +78,20 @@
                         <button class="tab-button nav-item" data-tab="members" data-title="Membros">
                             <i class="fas fa-users"></i><span>Membros</span>
                         </button>
-                        <button class="tab-button nav-item" data-tab="projects" data-title="Projetos">
-                            <i class="fas fa-diagram-project"></i><span>Projetos</span>
-                        </button>
+                        <div class="nav-parent" id="navParentProjects">
+                            <button type="button" class="nav-item nav-parent-toggle" id="navParentProjectsToggle" onclick="toggleNavSubmenu('navParentProjects')">
+                                <i class="fas fa-diagram-project"></i><span>Projetos</span>
+                                <i class="fas fa-chevron-down nav-parent-caret"></i>
+                            </button>
+                            <div class="nav-submenu">
+                                <button class="tab-button nav-item nav-subitem" data-tab="projects" data-title="Projetos">
+                                    <i class="fas fa-gear"></i><span>Configurações</span>
+                                </button>
+                                <button class="tab-button nav-item nav-subitem" data-tab="situationReports" data-title="Relatórios de Projetos">
+                                    <i class="fas fa-file-signature"></i><span>Relatórios de Projetos</span>
+                                </button>
+                            </div>
+                        </div>
                         <button class="tab-button nav-item" data-tab="tests" data-title="Testes">
                             <i class="fas fa-vial"></i><span>Testes</span>
                         </button>
@@ -334,6 +345,22 @@
                             </div>
                         </div>
                         <div id="projectsList" class="proj-grid"></div>
+                    </section>
+
+                    <!-- ==================== Relatórios de Projetos ==================== -->
+                    <section id="situationReports" class="tab-content">
+                        <div class="header-actions">
+                            <div class="header-actions-text">
+                                <h2><i class="fas fa-file-signature"></i> Relatórios de Projetos</h2>
+                                <p>Registre o andamento de cada projeto e gere um PDF com prazo, resumo e principal problema enfrentado.</p>
+                            </div>
+                            <div class="header-actions-buttons">
+                                <button class="btn btn-ghost-line" id="situationReportsGeneralPdfBtn">
+                                    <i class="fas fa-file-pdf"></i> Gerar relatório geral
+                                </button>
+                            </div>
+                        </div>
+                        <div id="situationReportsList" class="proj-grid"></div>
                     </section>
 
                     <!-- ==================== Testes ==================== -->
@@ -853,6 +880,66 @@
             </div>
         </div>
 
+        <!-- Relatório de situação de um projeto -->
+        <div id="modalSituationReport" class="modal-overlay">
+            <div class="modal-content">
+                <button class="btn-close-modal" onclick="closeModal('modalSituationReport')" aria-label="Fechar">&times;</button>
+                <h2><i class="fas fa-file-signature"></i> <span id="situationReportProjectName">Relatório do projeto</span></h2>
+                <p id="situationReportProjectMeta" class="situation-report-meta"></p>
+
+                <div class="header-actions-buttons situation-report-toolbar">
+                    <button type="button" class="btn btn-ghost-line" id="situationReportPdfBtn">
+                        <i class="fas fa-file-pdf"></i> Gerar PDF
+                    </button>
+                </div>
+
+                <h3 class="section-title"><i class="fas fa-clock-rotate-left"></i> Histórico de atualizações</h3>
+                <div id="situationReportHistory"></div>
+
+                <h3 class="section-title"><i class="fas fa-plus"></i> Nova atualização</h3>
+                <form id="situationReportForm">
+                    <input type="hidden" id="situationReportId" value="">
+                    <input type="hidden" id="situationReportProjectId" value="">
+
+                    <div class="form-group">
+                        <label for="situationReportDate"><i class="fas fa-calendar-day"></i> Data</label>
+                        <input type="date" id="situationReportDate" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="situationReportSummary"><i class="fas fa-align-left"></i> Resumo do andamento</label>
+                        <textarea id="situationReportSummary" class="form-control" rows="3"
+                            placeholder="O que aconteceu nesse período" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="situationReportIssue"><i class="fas fa-triangle-exclamation"></i> Principal problema enfrentado</label>
+                        <textarea id="situationReportIssue" class="form-control" rows="2"
+                            placeholder="Deixe em branco se não houve nenhum problema"></textarea>
+                    </div>
+                    <div class="form-group situation-report-checklist">
+                        <label><i class="fas fa-list-check"></i> Checklist de processo</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="situationReportPipefy"> Pipefy atualizado
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="situationReportAta"> ATA preenchida
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="situationReportStatusReport"> Status report enviado
+                        </label>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-warning" id="situationReportCancelBtn" style="display: none;">
+                            <i class="fas fa-times"></i> Cancelar edição
+                        </button>
+                        <button type="submit" class="btn btn-success" id="situationReportSubmitBtn">
+                            <i class="fas fa-save"></i> Salvar atualização
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Confirmação de exclusão -->
         <div id="confirmModal" class="modal-overlay">
             <div class="modal modal-confirm">
@@ -879,6 +966,8 @@
 
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+    <script src="js/vendor/exo-font.js"></script>
     <script src="js/dashboard.js" defer></script>
     <script src="js/auth.js" defer></script>
     <script src="js/supabase.js"></script>
@@ -888,6 +977,7 @@
     <script src="js/atividades_extras.js"></script>
     <script src="js/notificacoes.js"></script>
     <script src="js/relatorios.js"></script>
+    <script src="js/relatoriosSituacao.js"></script>
     <script src="js/app.js"></script>
     <script src="js/membros.js"></script>
     <script src="js/projetos.js"></script>

@@ -39,6 +39,9 @@ window.closeModal = function (modalId) {
         if (modalId === 'modalTest' && typeof resetTestFormState === 'function') {
             resetTestFormState();
         }
+        if (modalId === 'modalSituationReport' && typeof resetSituationReportFormState === 'function') {
+            resetSituationReportFormState();
+        }
 
         // Reset de botões de salvar
         const btn = modal.querySelector('button[type="submit"]');
