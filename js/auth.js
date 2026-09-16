@@ -14,7 +14,12 @@ async function safeLoadInterface() {
                 clearInterval(checkInterval);
                 console.log("Sistema pronto. Carregando dados...");
                 try {
+                    // Busca o papel do usuário ANTES de renderizar, pra evitar
+                    // um flash de conteúdo que ele não deveria ver.
+                    if (typeof loadCurrentUserRole === 'function') await loadCurrentUserRole();
                     await updateFullInterface();
+                    if (typeof applyRolePermissions === 'function') applyRolePermissions();
+                    if (typeof watchRolePermissions === 'function') watchRolePermissions();
                 } catch (e) {
                     console.error("Erro no updateFullInterface:", e);
                 }
@@ -74,22 +79,41 @@ async function handleManualRefresh() {
 // 2. GERENCIAMENTO DE ESTADO (Auth)
 // ==========================================
 
-// Ouvinte do Supabase
-_supabase.auth.onAuthStateChange(async (event, session) => {
+// Decide qual das 3 telas mostrar pra uma sessão: login (sem sessão),
+// "aguardando liberação" (logado mas sem linha em equilibra_user_roles —
+// só possível depois que a criação de conta ficou aberta pra qualquer um) ou
+// o app (logado e liberado). Centralizado aqui porque tanto o listener de
+// auth quanto o carregamento inicial da página precisam da mesma lógica.
+async function routeAfterSession(session) {
     const loginScreen = document.getElementById('login-screen');
+    const pendingScreen = document.getElementById('pending-screen');
     const appContent = document.getElementById('app-content');
 
-    if (session) {
-        if (loginScreen) loginScreen.style.display = 'none';
-        if (appContent) appContent.style.display = 'block';
-
-        // Usa o carregamento seguro
-        await safeLoadInterface(); 
-
-    } else {
+    if (!session) {
         if (loginScreen) loginScreen.style.display = 'flex';
+        if (pendingScreen) pendingScreen.style.display = 'none';
         if (appContent) appContent.style.display = 'none';
+        return;
     }
+
+    const registered = typeof isCurrentUserRegistered === 'function' ? await isCurrentUserRegistered() : true;
+
+    if (loginScreen) loginScreen.style.display = 'none';
+
+    if (!registered) {
+        if (appContent) appContent.style.display = 'none';
+        if (pendingScreen) pendingScreen.style.display = 'flex';
+        return;
+    }
+
+    if (pendingScreen) pendingScreen.style.display = 'none';
+    if (appContent) appContent.style.display = 'block';
+    await safeLoadInterface();
+}
+
+// Ouvinte do Supabase
+_supabase.auth.onAuthStateChange(async (event, session) => {
+    await routeAfterSession(session);
 });
 
 // Gatilho Manual ao carregar a página (Corrigido)
@@ -97,17 +121,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loginForm = document.getElementById('loginForm');
     if (loginForm) loginForm.addEventListener('submit', handleLogin);
 
+    const signupForm = document.getElementById('signupForm');
+    if (signupForm) signupForm.addEventListener('submit', handleSignup);
+
+    // Um botão de olho por campo de senha — delega num único listener em
+    // vez de repetir onclick por botão (login tem 1 campo, criar conta tem 2).
+    document.querySelectorAll('[data-password-toggle-for]').forEach(button => {
+        button.addEventListener('click', () => togglePasswordVisibility(button.dataset.passwordToggleFor, button));
+    });
+
+    const authModeToggle = document.getElementById('authModeToggle');
+    if (authModeToggle) authModeToggle.addEventListener('click', toggleAuthMode);
+
     const { data: { session } } = await _supabase.auth.getSession();
-    
-    // Se tiver sessão, o onAuthStateChange já vai disparar, 
+
+    // Se tiver sessão, o onAuthStateChange já vai disparar,
     // mas por segurança, se ele falhar, forçamos aqui:
     if (session) {
         const appContent = document.getElementById('app-content');
         if (appContent && appContent.style.display === 'none') {
              // Só roda se a tela ainda estiver escondida
-             document.getElementById('login-screen').style.display = 'none';
-             appContent.style.display = 'block';
-             await safeLoadInterface();
+             await routeAfterSession(session);
         }
     }
 });
@@ -116,10 +150,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 // 3. LOGIN E LOGOUT
 // ==========================================
 
-// Alterna entre esconder e mostrar a senha digitada.
-function togglePasswordVisibility() {
-    const input = document.getElementById('passwordInput');
-    const button = document.getElementById('passwordToggle');
+// Alterna entre esconder e mostrar a senha digitada num campo específico —
+// tanto o de login quanto os dois de criar conta usam a mesma função.
+function togglePasswordVisibility(inputId, button) {
+    const input = document.getElementById(inputId);
     if (!input || !button) return;
 
     const willShow = input.type === 'password';
@@ -133,6 +167,32 @@ function togglePasswordVisibility() {
 
     // Mantém o cursor no campo para não interromper a digitação.
     input.focus();
+}
+
+// Esconde a mensagem de erro/aviso da tela de login/criar conta.
+function _clearAuthMessages() {
+    const errorMsg = document.getElementById('loginError');
+    const notice = document.getElementById('loginNotice');
+    if (errorMsg) { errorMsg.style.display = 'none'; errorMsg.textContent = ''; }
+    if (notice) { notice.hidden = true; notice.textContent = ''; }
+}
+
+// Alterna entre o formulário de login e o de criar conta na mesma tela.
+function toggleAuthMode() {
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    const toggleBtn = document.getElementById('authModeToggle');
+    if (!loginForm || !signupForm || !toggleBtn) return;
+
+    const switchingToSignup = !loginForm.hidden;
+    loginForm.hidden = switchingToSignup;
+    signupForm.hidden = !switchingToSignup;
+
+    toggleBtn.innerHTML = switchingToSignup
+        ? 'Já tem conta? <span>Entrar</span>'
+        : 'Não tem conta? <span>Criar uma</span>';
+
+    _clearAuthMessages();
 }
 
 // Chamada pelo submit do #loginForm — tanto pelo botão "Entrar" quanto por
@@ -175,6 +235,91 @@ async function handleLogin(event) {
             errorMsg.style.display = 'block';
         } else {
             alert(msg);
+        }
+    }
+}
+
+// Chamada pelo submit do #signupForm — cria a conta no Supabase Auth. Quem
+// se cadastra assim entra como "Membro" por padrão (equilibra_get_my_role()
+// cai pro papel mais restrito pra e-mail que ainda não está em
+// equilibra_user_roles — ver schema.sql); um Diretor promove depois pela
+// aba "Usuários", se for o caso.
+async function handleSignup(event) {
+    if (event) event.preventDefault();
+
+    const name = document.getElementById('signupNameInput').value.trim();
+    const email = document.getElementById('signupEmailInput').value.trim();
+    const password = document.getElementById('signupPasswordInput').value;
+    const passwordConfirm = document.getElementById('signupPasswordConfirmInput').value;
+    const errorMsg = document.getElementById('loginError');
+    const notice = document.getElementById('loginNotice');
+
+    _clearAuthMessages();
+
+    if (!name || !email || !password || !passwordConfirm) {
+        if (errorMsg) { errorMsg.innerText = "Preencha todos os campos."; errorMsg.style.display = 'block'; }
+        return;
+    }
+    if (password.length < 6) {
+        if (errorMsg) { errorMsg.innerText = "A senha precisa ter pelo menos 6 caracteres."; errorMsg.style.display = 'block'; }
+        return;
+    }
+    if (password !== passwordConfirm) {
+        if (errorMsg) { errorMsg.innerText = "As senhas não são iguais."; errorMsg.style.display = 'block'; }
+        return;
+    }
+
+    const submitBtn = event && event.target ? event.target.querySelector('button[type="submit"]') : null;
+    const originalText = submitBtn ? submitBtn.innerHTML : '';
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Criando conta...';
+    }
+
+    try {
+        const { data, error } = await _supabase.auth.signUp({
+            email,
+            password,
+            options: { data: { full_name: name } },
+        });
+
+        if (error) throw error;
+
+        if (data.session) {
+            // Confirmação de e-mail desativada neste projeto (confirmado):
+            // já sai logado. onAuthStateChange assume daqui — routeAfterSession
+            // vai ver que essa conta é nova (sem linha em
+            // equilibra_user_roles) e mandar pra tela de "aguardando
+            // liberação" em vez do app.
+            return;
+        }
+
+        // Confirmação de e-mail ativada: precisa confirmar antes de entrar.
+        // toggleAuthMode() PRIMEIRO — ele limpa as mensagens da tela ao
+        // trocar de formulário, então o aviso só pode ser escrito depois.
+        toggleAuthMode(); // volta pra tela de login
+        document.getElementById('emailInput').value = email;
+        if (notice) {
+            notice.textContent = `Conta criada! Enviamos um e-mail de confirmação para ${email} — confirme antes de entrar.`;
+            notice.hidden = false;
+        }
+
+    } catch (error) {
+        console.error("Erro ao criar conta:", error.message);
+        const msg = error.message === "User already registered"
+            ? "Este e-mail já está cadastrado. Tente entrar."
+            : "Erro: " + error.message;
+
+        if (errorMsg) {
+            errorMsg.innerText = msg;
+            errorMsg.style.display = 'block';
+        } else {
+            alert(msg);
+        }
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText || 'Criar conta';
         }
     }
 }

@@ -23,6 +23,7 @@
             <img src="assets/logo.svg" alt="Equilibra" class="login-logo">
             <p class="login-subtitle">Gestão de capacidade e alocação para times ágeis</p>
 
+            <!-- Entrar -->
             <form id="loginForm">
                 <div class="field">
                     <label for="emailInput">Email</label>
@@ -35,8 +36,8 @@
                     <div class="password-wrapper">
                         <input type="password" id="passwordInput" class="form-control" placeholder="••••••••"
                             autocomplete="current-password">
-                        <button type="button" id="passwordToggle" class="password-toggle"
-                            onclick="togglePasswordVisibility()" aria-label="Mostrar senha" aria-pressed="false">
+                        <button type="button" class="password-toggle" data-password-toggle-for="passwordInput"
+                            aria-label="Mostrar senha" aria-pressed="false">
                             <i class="fas fa-eye" aria-hidden="true"></i>
                         </button>
                     </div>
@@ -46,7 +47,73 @@
                     Entrar
                 </button>
             </form>
+
+            <!-- Criar conta -->
+            <form id="signupForm" hidden>
+                <div class="field">
+                    <label for="signupNameInput">Nome</label>
+                    <input type="text" id="signupNameInput" class="form-control" placeholder="Seu nome completo"
+                        autocomplete="name">
+                </div>
+
+                <div class="field">
+                    <label for="signupEmailInput">Email</label>
+                    <input type="email" id="signupEmailInput" class="form-control" placeholder="voce@ejectufrn.com.br"
+                        autocomplete="username">
+                </div>
+
+                <div class="field">
+                    <label for="signupPasswordInput">Senha</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="signupPasswordInput" class="form-control" placeholder="Mínimo de 6 caracteres"
+                            autocomplete="new-password">
+                        <button type="button" class="password-toggle" data-password-toggle-for="signupPasswordInput"
+                            aria-label="Mostrar senha" aria-pressed="false">
+                            <i class="fas fa-eye" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="signupPasswordConfirmInput">Confirmar senha</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="signupPasswordConfirmInput" class="form-control" placeholder="Repita a senha"
+                            autocomplete="new-password">
+                        <button type="button" class="password-toggle" data-password-toggle-for="signupPasswordConfirmInput"
+                            aria-label="Mostrar senha" aria-pressed="false">
+                            <i class="fas fa-eye" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">
+                    Criar conta
+                </button>
+            </form>
+
             <p id="loginError" class="login-error"></p>
+            <p id="loginNotice" class="login-notice" hidden></p>
+
+            <button type="button" id="authModeToggle" class="login-mode-toggle">
+                Não tem conta? <span>Criar uma</span>
+            </button>
+        </div>
+        <div class="login-foot">
+            <span>Produto do</span>
+            <img src="assets/eject_labs_logo.svg" alt="EJECT LABS" class="eject-logo">
+        </div>
+    </div>
+
+    <!-- ==================== Aguardando liberação de acesso ==================== -->
+    <div id="pending-screen" class="login-screen" style="display:none;">
+        <div class="login-card">
+            <img src="assets/logo.svg" alt="Equilibra" class="login-logo">
+            <i class="fas fa-user-clock" style="font-size:2rem;color:var(--brand);margin-bottom:10px;"></i>
+            <p class="login-subtitle" style="margin-bottom:8px;">Conta criada! Seu acesso ainda precisa ser liberado por um Diretor antes de você poder entrar.</p>
+            <p class="login-subtitle" style="font-size:0.82rem;">Avise alguém com esse papel — a liberação é feita pela aba "Usuários".</p>
+            <button type="button" class="btn btn-primary btn-block" onclick="handleLogout()">
+                Voltar para o login
+            </button>
         </div>
         <div class="login-foot">
             <span>Produto do</span>
@@ -103,10 +170,17 @@
                         </button>
                     </div>
 
-                    <div class="nav-group">
+                    <div class="nav-group" data-nav-requires="planning">
                         <span class="nav-group-label">Planejamento</span>
                         <button class="tab-button nav-item" data-tab="analises" data-title="Análises">
                             <i class="fas fa-chart-line"></i><span>Análises</span>
+                        </button>
+                    </div>
+
+                    <div class="nav-group" data-nav-requires="users">
+                        <span class="nav-group-label">Administração</span>
+                        <button class="tab-button nav-item" data-tab="usuarios" data-title="Usuários">
+                            <i class="fas fa-user-lock"></i><span>Usuários</span>
                         </button>
                     </div>
                 </nav>
@@ -116,7 +190,7 @@
                         <span class="avatar"><i class="fas fa-user"></i></span>
                         <div class="sidebar-user-info">
                             <strong>Ejecter</strong>
-                            <small>Equipe EJECT</small>
+                            <small class="role-badge">Membro</small>
                         </div>
                     </div>
                     <button onclick="handleLogout()" class="icon-btn" title="Sair" aria-label="Sair">
@@ -306,7 +380,7 @@
                                 <button class="btn btn-ghost-line" onclick="exportMembersReport()">
                                     <i class="fas fa-file-csv"></i> Exportar CSV
                                 </button>
-                                <button class="btn-add-floating" onclick="openModal('modalMember')">
+                                <button class="btn-add-floating" onclick="openModal('modalMember')" data-requires="members:write">
                                     <i class="fas fa-plus"></i> Novo membro
                                 </button>
                             </div>
@@ -319,7 +393,7 @@
                                             <th>Nome</th>
                                             <th>Cargo</th>
                                             <th>Sobrecarga</th>
-                                            <th>Ações</th>
+                                            <th data-requires-any="members:write,members:delete">Ações</th>
                                         </tr>
                                     </thead>
                                     <tbody id="membersList"></tbody>
@@ -339,7 +413,7 @@
                                 <button class="btn btn-ghost-line" onclick="exportProjectsReport()">
                                     <i class="fas fa-file-csv"></i> Exportar CSV
                                 </button>
-                                <button class="btn-add-floating" onclick="openModal('modalProject')">
+                                <button class="btn-add-floating" onclick="openModal('modalProject')" data-requires="projects:write">
                                     <i class="fas fa-plus"></i> Novo projeto
                                 </button>
                             </div>
@@ -370,7 +444,7 @@
                                 <h2><i class="fas fa-vial"></i> Testes</h2>
                                 <p>Ciclos de teste que geram carga para o time.</p>
                             </div>
-                            <button class="btn-add-floating btn-add-test" onclick="openModal('modalTest')">
+                            <button class="btn-add-floating btn-add-test" onclick="openModal('modalTest')" data-requires="tests:write">
                                 <i class="fas fa-plus"></i> Novo teste
                             </button>
                         </div>
@@ -386,7 +460,7 @@
                                             <th>Carga</th>
                                             <th>Período</th>
                                             <th>Status</th>
-                                            <th>Ações</th>
+                                            <th data-requires-any="tests:write,tests:delete">Ações</th>
                                         </tr>
                                     </thead>
                                     <tbody id="testsList"></tbody>
@@ -402,7 +476,7 @@
                                 <h2><i class="fas fa-user-shield"></i> Scrum Masters</h2>
                                 <p>Quem lidera cada projeto e a carga dessa função.</p>
                             </div>
-                            <button class="btn-add-floating btn-add-scrum" onclick="openModal('modalScrum')">
+                            <button class="btn-add-floating btn-add-scrum" onclick="openModal('modalScrum')" data-requires="scrum:write">
                                 <i class="fas fa-crown"></i> Definir Scrum Master
                             </button>
                         </div>
@@ -413,7 +487,7 @@
                                         <tr>
                                             <th>Projeto</th>
                                             <th>Scrum Master</th>
-                                            <th>Ações</th>
+                                            <th data-requires="scrum:write">Ações</th>
                                         </tr>
                                     </thead>
                                     <tbody id="scrumList"></tbody>
@@ -442,7 +516,7 @@
                                 <button class="btn btn-ghost-line" onclick="exportActivitiesReport()">
                                     <i class="fas fa-file-csv"></i> Exportar CSV
                                 </button>
-                                <button class="btn-add-floating btn-add-activity" onclick="openModal('modalActivity')">
+                                <button class="btn-add-floating btn-add-activity" onclick="openModal('modalActivity')" data-requires="activities:write">
                                     <i class="fas fa-plus"></i> Nova atividade
                                 </button>
                             </div>
@@ -457,7 +531,7 @@
                                             <th>Pontos</th>
                                             <th>Prazo</th>
                                             <th>Status</th>
-                                            <th>Ações</th>
+                                            <th data-requires-any="activities:write,activities:delete">Ações</th>
                                         </tr>
                                     </thead>
                                     <tbody id="activitiesList"></tbody>
@@ -520,6 +594,39 @@
                                 É apenas uma simulação — <strong>nada é salvo</strong> nem aplicado aos dados reais.
                             </p>
                             <div class="analysis-sim" id="analysisSim"></div>
+                        </div>
+                    </section>
+
+                    <!-- ==================== Usuários (só Diretor) ==================== -->
+                    <section id="usuarios" class="tab-content">
+                        <div class="header-actions">
+                            <div class="header-actions-text">
+                                <h2><i class="fas fa-user-lock"></i> Usuários</h2>
+                                <p>Quem pode logar no Equilibra e com qual nível de acesso.</p>
+                            </div>
+                            <button class="btn-add-floating" onclick="openModal('modalUsuario')">
+                                <i class="fas fa-plus"></i> Novo usuário
+                            </button>
+                        </div>
+
+                        <div id="usuariosPendentesCard" class="card card-flush usuarios-pending-card" hidden>
+                            <h3 class="section-title"><i class="fas fa-user-clock"></i> Aguardando liberação</h3>
+                            <div id="usuariosPendentesList"></div>
+                        </div>
+
+                        <div class="card card-flush">
+                            <div class="table-container">
+                                <table id="usuariosTable">
+                                    <thead>
+                                        <tr>
+                                            <th>E-mail</th>
+                                            <th>Papel</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="usuariosList"></tbody>
+                                </table>
+                            </div>
                         </div>
                     </section>
 
@@ -913,6 +1020,7 @@
                 <h3 class="section-title"><i class="fas fa-clock-rotate-left"></i> Histórico de atualizações</h3>
                 <div id="situationReportHistory"></div>
 
+                <div data-requires="situationReports:write">
                 <h3 class="section-title"><i class="fas fa-plus"></i> Nova atualização</h3>
                 <form id="situationReportForm">
                     <input type="hidden" id="situationReportId" value="">
@@ -954,6 +1062,39 @@
                         </button>
                     </div>
                 </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Novo usuário / papel -->
+        <div id="modalUsuario" class="modal-overlay">
+            <div class="modal-content">
+                <button class="btn-close-modal" onclick="closeModal('modalUsuario')" aria-label="Fechar">&times;</button>
+                <h2><i class="fas fa-user-lock"></i> Cadastrar acesso</h2>
+                <p class="modal-subtitle">Libera o login desse e-mail no Equilibra com o papel escolhido.</p>
+                <form id="usuarioForm">
+                    <input type="hidden" id="usuarioEmailOriginal" value="">
+                    <div class="form-group">
+                        <label for="usuarioEmail"><i class="fas fa-envelope"></i> E-mail</label>
+                        <input type="email" id="usuarioEmail" class="form-control" placeholder="pessoa@ejectufrn.com.br" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="usuarioRole"><i class="fas fa-shield-halved"></i> Papel</label>
+                        <select id="usuarioRole" class="form-control" required>
+                            <option value="membro">Membro</option>
+                            <option value="gerente">Gerente</option>
+                            <option value="diretor">Diretor</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-warning" id="usuarioCancelBtn" style="display: none;">
+                            <i class="fas fa-times"></i> Cancelar edição
+                        </button>
+                        <button type="submit" class="btn btn-success" id="usuarioSubmitBtn">
+                            <i class="fas fa-save"></i> Salvar
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -988,6 +1129,7 @@
     <script src="js/dashboard.js" defer></script>
     <script src="js/auth.js" defer></script>
     <script src="js/supabase.js"></script>
+    <script src="js/permissoes.js"></script>
     <script src="js/projectTypes.js"></script>
     <script src="js/uxUiStatus.js"></script>
     <script src="js/overload.js"></script>
@@ -1000,6 +1142,7 @@
     <script src="js/projetos.js"></script>
     <script src="js/scrum.js"></script>
     <script src="js/testes.js"></script>
+    <script src="js/usuarios.js"></script>
     <script src="js/analises.js"></script>
     <script src="js/modal.js"></script>
     <script src="js/ui.js"></script>

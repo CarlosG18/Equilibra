@@ -207,12 +207,12 @@ function renderMembers() {
                     </span>
                 </div>
             </td>
-            <td>
+            <td data-requires-any="members:write,members:delete">
                 <div class="action-buttons">
                     <button class="btn btn-info btn-extra-small" onclick="editMember('${member.id}'); openModal('modalMember')">
                         <i class="fas fa-edit"></i> Editar
                     </button>
-                    <button class="btn btn-danger btn-extra-small" onclick="confirmDelete('member', '${member.id}', '${member.name.replace(/'/g, "\\'")}')">
+                    <button class="btn btn-danger btn-extra-small" onclick="confirmDelete('member', '${member.id}', '${member.name.replace(/'/g, "\\'")}')" data-requires="members:delete">
                         <i class="fas fa-trash"></i> Remover
                     </button>
                 </div>

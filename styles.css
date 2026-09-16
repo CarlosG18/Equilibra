@@ -251,6 +251,41 @@ body {
     display: none;
 }
 
+.login-notice {
+    color: var(--brand-strong);
+    background: var(--brand-50);
+    border: 1px solid var(--brand-100);
+    border-radius: var(--radius-sm);
+    font-size: 0.82rem;
+    line-height: 1.5;
+    padding: 10px 14px;
+    margin-top: 14px;
+    text-align: left;
+}
+
+/* Alterna entre "Entrar" e "Criar conta" na mesma tela de login. */
+.login-mode-toggle {
+    width: 100%;
+    margin-top: 18px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-2);
+    font-size: 0.84rem;
+    cursor: pointer;
+}
+
+.login-mode-toggle span {
+    color: var(--blue-strong);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.login-mode-toggle:hover span {
+    color: var(--brand);
+}
+
 .login-foot {
     display: flex;
     align-items: center;
@@ -484,6 +519,28 @@ body {
     color: var(--side-muted);
     font-size: 0.72rem;
 }
+
+/* Papel do usuário logado — pontinho colorido + nome do papel, discreto o
+   bastante pra caber ao lado do nome sem competir com ele. */
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+}
+
+.role-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+}
+
+.role-badge-diretor { color: #b79bfa; }
+.role-badge-gerente { color: #7dd3fc; }
+.role-badge-membro  { color: var(--side-muted); }
 
 .avatar {
     width: 36px;
@@ -2001,6 +2058,79 @@ input[type="range"].form-control::-moz-range-thumb {
     letter-spacing: 0.02em;
 }
 
+/* Papel na tabela de Usuários (aba de administração) */
+.role-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78em;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+}
+
+/* Fila de "aguardando liberação" no topo da aba Usuários */
+.usuarios-pending-card {
+    border-color: var(--orange);
+    background: var(--orange-bg);
+    margin-bottom: 18px;
+}
+
+.usuarios-pending-card .section-title {
+    color: var(--orange-ink);
+    margin-bottom: 12px;
+}
+
+.usuario-pending-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.usuario-pending-row:first-child {
+    border-top: none;
+}
+
+.usuario-pending-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.usuario-pending-info small {
+    color: var(--text-3);
+    font-size: 0.76rem;
+}
+
+.usuario-pending-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.usuario-pending-role {
+    padding: 7px 10px;
+    font-size: 0.85em;
+    width: auto;
+}
+
+@media (max-width: 560px) {
+    .usuario-pending-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .usuario-pending-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
 /* ===================== Alocação inteligente ===================== */
 .smart-allocation-header {
     grid-column: 1 / -1;
@@ -3498,4 +3628,14 @@ tr.member-card:hover {
     color: #a51d1d;
     background: #a51d1d1a;
     border-color: #a51d1d55;
+}
+
+/* Garante que o atributo [hidden] (usado por js/permissoes.js pra esconder
+   o que o papel do usuário não pode ver) sempre vence, mesmo em elementos
+   que já têm um "display" próprio (ex: .btn-add-floating é inline-flex) —
+   uma regra de autor "normal" sempre bate a folha de estilo do navegador,
+   então sem o !important aqui esses elementos ficariam "escondidos" mas
+   ainda visíveis. */
+[hidden] {
+    display: none !important;
 }

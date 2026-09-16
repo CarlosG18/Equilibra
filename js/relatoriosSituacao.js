@@ -182,11 +182,11 @@ function renderSituationHistoryHTML(rows) {
                 <div class="ux-ui-history-nota"><strong>Andamento:</strong> ${r.progress_summary}</div>
                 ${r.main_issue ? `<div class="ux-ui-history-nota"><strong>Principal problema:</strong> ${r.main_issue}</div>` : ''}
                 <div class="situation-checklist-row">${checklist}</div>
-                <div class="ux-ui-history-meta">
-                    <button type="button" class="btn btn-info btn-extra-small" onclick="editSituationEntry(${r.id})">
+                <div class="ux-ui-history-meta" data-requires-any="situationReports:write,situationReports:delete">
+                    <button type="button" class="btn btn-info btn-extra-small" onclick="editSituationEntry(${r.id})" data-requires="situationReports:write">
                         <i class="fas fa-edit"></i> Editar
                     </button>
-                    <button type="button" class="btn btn-danger btn-extra-small" onclick="askDeleteSituationEntry(${r.id})">
+                    <button type="button" class="btn btn-danger btn-extra-small" onclick="askDeleteSituationEntry(${r.id})" data-requires="situationReports:delete">
                         <i class="fas fa-trash"></i> Excluir
                     </button>
                 </div>

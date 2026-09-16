@@ -401,5 +401,58 @@ const ProjectService = {
         const { error } = await _supabase.from('project_situation_reports').delete().eq('id', id);
         if (error) return { success: false, error: error.message };
         return { success: true };
+    },
+
+    // ==========================================
+    // --- 9. TIPOS DE USUÁRIO (equilibra_user_roles) ---
+    // Protegida por RLS a só-Diretor no banco — ver schema.sql. A aba
+    // "Usuários" também só aparece pro Diretor na interface (js/usuarios.js).
+    // ==========================================
+
+    async listarUsuarios() {
+        const { data, error } = await _supabase
+            .from('equilibra_user_roles')
+            .select('*')
+            .order('role')
+            .order('email');
+
+        if (error) return { success: false, error: error.message };
+        return { success: true, data };
+    },
+
+    // Quem já criou conta (tela de login → "Criar uma") mas ainda não tem
+    // papel definido — a fila de aprovação. Só devolve linhas pro Diretor
+    // (a checagem está dentro da função no banco, não só aqui).
+    async listarUsuariosPendentes() {
+        const { data, error } = await _supabase.rpc('equilibra_list_pending_users');
+        if (error) return { success: false, error: error.message };
+        return { success: true, data };
+    },
+
+    async adicionarUsuario(email, role) {
+        const { data, error } = await _supabase
+            .from('equilibra_user_roles')
+            .insert([{ email: email.trim().toLowerCase(), role }])
+            .select();
+
+        if (error) return { success: false, error: error.message };
+        return { success: true, data: data[0] };
+    },
+
+    async atualizarPapelUsuario(email, role) {
+        const { data, error } = await _supabase
+            .from('equilibra_user_roles')
+            .update({ role })
+            .eq('email', email)
+            .select();
+
+        if (error) return { success: false, error: error.message };
+        return { success: true, data: data[0] };
+    },
+
+    async removerUsuario(email) {
+        const { error } = await _supabase.from('equilibra_user_roles').delete().eq('email', email);
+        if (error) return { success: false, error: error.message };
+        return { success: true };
     }
 };

@@ -11,7 +11,7 @@ let editingProjectId = null;
 let editingActivityId = null;
 let editingTestId = null;
 let itemToDelete = null;
-let deleteType = null; // 'member', 'project', 'activity' ou 'scrum'
+let deleteType = null; // 'member', 'project', 'activity', 'scrum' ou 'usuario'
 
 // ==========================================
 // 2. INICIALIZAÇÃO
@@ -76,6 +76,11 @@ function updateFullInterface() {
     renderActivities();
     if (typeof renderAnalises === 'function') renderAnalises();
     if (typeof loadSituationReportsOverview === 'function') loadSituationReportsOverview();
+    // Só carrega a lista de usuários se o papel atual tiver acesso — RLS já
+    // bloqueia no banco, isso só evita uma chamada desnecessária.
+    if (typeof loadUsuarios === 'function' && (typeof can !== 'function' || can('users', 'view'))) {
+        loadUsuarios();
+    }
 }
 
 // ==========================================
@@ -354,6 +359,8 @@ function setupConfirmationModal() {
             deleteActivity(itemToDelete);
         } else if (deleteType === 'scrum' && itemToDelete !== null) {
             removeScrumMaster(itemToDelete);
+        } else if (deleteType === 'usuario' && itemToDelete !== null) {
+            deleteUsuario(itemToDelete);
         }
 
         confirmModal.classList.remove('active');
@@ -376,6 +383,8 @@ function confirmDelete(type, id, name) {
         message = `Tem certeza que deseja excluir a atividade "${name}"? Esta ação não pode ser desfeita.`;
     } else if (type === 'scrum') {
         message = `Tem certeza que deseja remover o Scrum Master do projeto "${name}"?`;
+    } else if (type === 'usuario') {
+        message = `Tem certeza que deseja remover o acesso de "${name}" ao Equilibra?`;
     }
 
     document.getElementById('confirmMessage').textContent = message;
