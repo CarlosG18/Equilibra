@@ -69,6 +69,14 @@ function can(section, action = 'view') {
 // ="secao"], equivalente a "view") que o papel atual não tenha permissão —
 // abas inteiras (nav) ou controles pontuais (botões, formulários) dentro de
 // uma aba que o usuário pode acessar.
+//
+// CUIDADO: esta função roda de novo sozinha a cada mutação no DOM observado
+// (ver watchRolePermissions abaixo) — e ela mesma escreve no DOM (o badge de
+// papel). Sem o disconnect/observe em volta da escrita, isso é um loop
+// infinito: escrever aciona o observer, que chama esta função de novo, que
+// escreve nas mesmas linhas de novo (trocar textContent sempre cria um nó
+// de texto novo, então o observer dispara mesmo sem o valor ter mudado) —
+// já travou a aba inteira uma vez em produção por causa disso.
 function applyRolePermissions() {
     document.querySelectorAll('[data-requires]').forEach(el => {
         const [section, action] = el.dataset.requires.split(':');
@@ -92,12 +100,22 @@ function applyRolePermissions() {
         el.hidden = !can(el.dataset.navRequires, 'view');
     });
 
+    // Desliga o observer antes de escrever o badge e liga de novo depois,
+    // na mesma execução síncrona — assim essa escrita nunca chega a virar
+    // uma notificação pro próprio observer (ver comentário acima).
+    if (_roleObserver) _roleObserver.disconnect();
     _renderRoleBadges();
+    if (_roleObserver) _roleObserver.observe(document.getElementById('app-content'), { childList: true, subtree: true });
 }
 
 function _renderRoleBadges() {
+    const label = ROLE_LABELS[currentUserRole] || ROLE_LABELS.membro;
     document.querySelectorAll('.role-badge').forEach(el => {
-        el.textContent = ROLE_LABELS[currentUserRole] || ROLE_LABELS.membro;
+        // Só escreve se o valor realmente mudou — evita gerar um nó de
+        // texto novo (e portanto uma mutação observável) à toa a cada
+        // chamada, mesmo com o disconnect/observe acima como segunda rede
+        // de segurança.
+        if (el.textContent !== label) el.textContent = label;
         el.classList.remove('role-badge-diretor', 'role-badge-gerente', 'role-badge-membro');
         el.classList.add(`role-badge-${currentUserRole}`);
     });
