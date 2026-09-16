@@ -429,6 +429,15 @@
                                 <h2><i class="fas fa-list-check"></i> Atividades extras</h2>
                                 <p>Cargas que costumam ficar invisíveis: GTs, mentorias, suporte.</p>
                             </div>
+                            <div class="activity-status-filter">
+                                <label for="activityStatusFilter"><i class="fas fa-filter"></i> Mostrando</label>
+                                <select id="activityStatusFilter" class="form-control" onchange="renderActivities()">
+                                    <option value="ativa" selected>Ativas</option>
+                                    <option value="pendente">Pendentes</option>
+                                    <option value="concluida">Concluídas</option>
+                                    <option value="todas">Todas</option>
+                                </select>
+                            </div>
                             <div class="header-actions-buttons">
                                 <button class="btn btn-ghost-line" onclick="exportActivitiesReport()">
                                     <i class="fas fa-file-csv"></i> Exportar CSV

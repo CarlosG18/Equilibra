@@ -87,6 +87,14 @@ function renderActivities() {
     
     activitiesList.innerHTML = '';
 
+    // --- FILTRO POR STATUS ---
+    const statusFilterEl = document.getElementById('activityStatusFilter');
+    const statusFilter = statusFilterEl ? statusFilterEl.value : 'ativa';
+
+    const filteredActivities = statusFilter === 'todas'
+        ? extraActivities
+        : extraActivities.filter(a => a.status === statusFilter);
+
     if (extraActivities.length === 0) {
         activitiesList.innerHTML = `
             <tr>
@@ -98,7 +106,18 @@ function renderActivities() {
         return;
     }
 
-    extraActivities.forEach(activity => {
+    if (filteredActivities.length === 0) {
+        activitiesList.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align: center; color: var(--gray); font-style: italic; padding: 20px;">
+                    Nenhuma atividade com o status selecionado.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    filteredActivities.forEach(activity => {
         // --- 1. LÓGICA DE MEMBROS (MÚLTIPLOS) ---
         // O Supabase retorna allocated_members como um array de IDs (strings)
         const memberIds = activity.allocated_members || [];
