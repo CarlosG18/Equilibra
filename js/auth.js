@@ -14,7 +14,12 @@ async function safeLoadInterface() {
                 clearInterval(checkInterval);
                 console.log("Sistema pronto. Carregando dados...");
                 try {
+                    // Busca o papel do usuário ANTES de renderizar, pra evitar
+                    // um flash de conteúdo que ele não deveria ver.
+                    if (typeof loadCurrentUserRole === 'function') await loadCurrentUserRole();
                     await updateFullInterface();
+                    if (typeof applyRolePermissions === 'function') applyRolePermissions();
+                    if (typeof watchRolePermissions === 'function') watchRolePermissions();
                 } catch (e) {
                     console.error("Erro no updateFullInterface:", e);
                 }

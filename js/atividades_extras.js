@@ -184,12 +184,12 @@ function renderActivities() {
             <td data-label="Status">
                 <span class="${statusClass}">${statusText}</span>
             </td>
-            <td data-label="Ações">
+            <td data-label="Ações" data-requires-any="activities:write,activities:delete">
                 <div class="action-buttons">
                     <button class="btn btn-info btn-extra-small" onclick="editActivity('${activity.id}'); openModal('modalActivity')" title="Editar">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn btn-danger btn-extra-small" onclick="confirmDelete('activity', '${activity.id}', '${activity.name}')" title="Remover">
+                    <button class="btn btn-danger btn-extra-small" onclick="confirmDelete('activity', '${activity.id}', '${activity.name}')" title="Remover" data-requires="activities:delete">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>

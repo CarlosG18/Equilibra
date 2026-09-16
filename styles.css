@@ -485,6 +485,28 @@ body {
     font-size: 0.72rem;
 }
 
+/* Papel do usuário logado — pontinho colorido + nome do papel, discreto o
+   bastante pra caber ao lado do nome sem competir com ele. */
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+}
+
+.role-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+}
+
+.role-badge-diretor { color: #b79bfa; }
+.role-badge-gerente { color: #7dd3fc; }
+.role-badge-membro  { color: var(--side-muted); }
+
 .avatar {
     width: 36px;
     height: 36px;
@@ -2001,6 +2023,18 @@ input[type="range"].form-control::-moz-range-thumb {
     letter-spacing: 0.02em;
 }
 
+/* Papel na tabela de Usuários (aba de administração) */
+.role-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78em;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+}
+
 /* ===================== Alocação inteligente ===================== */
 .smart-allocation-header {
     grid-column: 1 / -1;
@@ -3498,4 +3532,14 @@ tr.member-card:hover {
     color: #a51d1d;
     background: #a51d1d1a;
     border-color: #a51d1d55;
+}
+
+/* Garante que o atributo [hidden] (usado por js/permissoes.js pra esconder
+   o que o papel do usuário não pode ver) sempre vence, mesmo em elementos
+   que já têm um "display" próprio (ex: .btn-add-floating é inline-flex) —
+   uma regra de autor "normal" sempre bate a folha de estilo do navegador,
+   então sem o !important aqui esses elementos ficariam "escondidos" mas
+   ainda visíveis. */
+[hidden] {
+    display: none !important;
 }

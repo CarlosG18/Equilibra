@@ -574,10 +574,10 @@ function renderProjects() {
                 <div class="proj-card-footer">
                     <div class="proj-card-deadline">${formatDeadlineCountdown(proj.deadline)}</div>
                     <div class="proj-card-actions">
-                        <button class="btn btn-info btn-extra-small" onclick="editProject('${proj.id}'); openModal('modalProject')">
+                        <button class="btn btn-info btn-extra-small" onclick="editProject('${proj.id}'); openModal('modalProject')" data-requires="projects:write">
                             <i class="fas fa-edit"></i> Editar
                         </button>
-                        <button class="btn btn-danger btn-extra-small" onclick="confirmDelete('project', '${proj.id}', '${proj.name.replace(/'/g, "\\'")}')">
+                        <button class="btn btn-danger btn-extra-small" onclick="confirmDelete('project', '${proj.id}', '${proj.name.replace(/'/g, "\\'")}')" data-requires="projects:delete">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>

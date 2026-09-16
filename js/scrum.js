@@ -32,7 +32,7 @@ function renderScrumMasters() {
                 <strong>${scrumMaster.name}</strong><br>
                 <small>${scrumMaster.role}</small>
             </td>
-            <td>
+            <td data-requires="scrum:write">
                 <button class="btn btn-danger btn-extra-small" onclick="confirmDelete('scrum', '${project.id}', '${project.name.replace(/'/g, "\\'")}')">
                     <i class="fas fa-user-slash"></i> Remover
                 </button>

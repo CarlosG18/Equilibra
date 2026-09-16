@@ -36,11 +36,15 @@ window.closeModal = function (modalId) {
         if (typeof editingProjectId !== 'undefined') editingProjectId = null;
         if (typeof editingActivityId !== 'undefined') editingActivityId = null;
         if (typeof editingTestId !== 'undefined') editingTestId = null;
+        if (typeof editingUsuarioEmail !== 'undefined') editingUsuarioEmail = null;
         if (modalId === 'modalTest' && typeof resetTestFormState === 'function') {
             resetTestFormState();
         }
         if (modalId === 'modalSituationReport' && typeof resetSituationReportFormState === 'function') {
             resetSituationReportFormState();
+        }
+        if (modalId === 'modalUsuario' && typeof resetUsuarioFormState === 'function') {
+            resetUsuarioFormState();
         }
 
         // Reset de botões de salvar

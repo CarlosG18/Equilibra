@@ -109,8 +109,8 @@ function renderTests() {
         
         // Botão de ação (Concluir ou Reabrir)
         const toggleBtn = t.status === 'em_andamento'
-            ? `<button class="btn btn-success btn-extra-small" onclick="toggleTestStatus(${t.id}, 'concluido')" title="Concluir Teste" style="margin-right:5px;"><i class="fas fa-check"></i></button>`
-            : `<button class="btn btn-warning btn-extra-small" onclick="toggleTestStatus(${t.id}, 'em_andamento')" title="Reabrir Teste" style="margin-right:5px;"><i class="fas fa-undo"></i></button>`;
+            ? `<button class="btn btn-success btn-extra-small" onclick="toggleTestStatus(${t.id}, 'concluido')" title="Concluir Teste" style="margin-right:5px;" data-requires="tests:write"><i class="fas fa-check"></i></button>`
+            : `<button class="btn btn-warning btn-extra-small" onclick="toggleTestStatus(${t.id}, 'em_andamento')" title="Reabrir Teste" style="margin-right:5px;" data-requires="tests:write"><i class="fas fa-undo"></i></button>`;
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -121,11 +121,11 @@ function renderTests() {
             <td>${t.overload_points} pts</td>
             <td style="white-space: nowrap;">${buildTestPeriodCell(t)}</td>
             <td>${statusBadge}</td>
-            <td>
+            <td data-requires-any="tests:write,tests:delete">
                 <div style="display:flex; align-items:center;">
                     ${toggleBtn}
-                    <button class="btn btn-primary btn-extra-small" onclick="editTest(${t.id})" title="Editar Teste" style="margin-right:5px;"><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-danger btn-extra-small" onclick="askDeleteTest(${t.id})"><i class="fas fa-trash"></i></button>
+                    <button class="btn btn-primary btn-extra-small" onclick="editTest(${t.id})" title="Editar Teste" style="margin-right:5px;" data-requires="tests:write"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-danger btn-extra-small" onclick="askDeleteTest(${t.id})" data-requires="tests:delete"><i class="fas fa-trash"></i></button>
                 </div>
             </td>
         `;

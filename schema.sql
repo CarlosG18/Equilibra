@@ -260,22 +260,138 @@ ALTER TABLE projects ADD COLUMN IF NOT EXISTS member_statuses JSONB DEFAULT '{}'
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS po_id UUID REFERENCES members(id) ON DELETE SET NULL;
 CREATE INDEX IF NOT EXISTS idx_projects_po_id ON projects(po_id);
 
--- ==========================================
--- ROW LEVEL SECURITY (opcional — ative se quiser
--- que cada usuário veja apenas seus próprios dados)
--- ==========================================
-
--- ALTER TABLE members           ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE projects          ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE extra_activities  ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE project_tests     ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE test_members      ENABLE ROW LEVEL SECURITY;
-
--- Exemplo de política (repita para cada tabela e operação):
--- CREATE POLICY "Usuário vê apenas seus membros"
---     ON members FOR SELECT
---     USING (auth.uid() = user_id);
+-- ==========================================================================
+-- MIGRAÇÃO: tipos de usuário (permissões por papel)
+-- Três papéis: diretor (acesso total), gerente (tudo menos apagar membros/
+-- projetos/testes; scrum e planejamento só visualização) e membro (só
+-- visualização em quase tudo, sem acesso a planejamento).
 --
--- Obs: para usar RLS com user_id, adicione a coluna:
--- ALTER TABLE members ADD COLUMN user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
--- E passe auth.uid() nos inserts do supabase.js.
+-- equilibra_user_roles é uma tabela NOVA e própria do Equilibra — prefixada
+-- porque este projeto Supabase é compartilhado com outro app (financeiro,
+-- tabelas users/categories/etc.) sem relação com o Equilibra; não mexemos
+-- em nenhuma tabela do outro app.
+--
+-- equilibra_get_my_role() devolve o papel de quem está logado (pelo e-mail
+-- do JWT); se o e-mail não estiver cadastrado, devolve 'membro' — fail-safe
+-- pro menor privilégio, não bloqueia o login. É SECURITY DEFINER pra poder
+-- ler equilibra_user_roles mesmo com RLS restrito nela a só-diretor (só
+-- devolve o papel do PRÓPRIO chamador, nunca a tabela inteira).
+--
+-- Usada em: js/permissoes.js (fetch do papel após login, gate de UI)
+--           js/usuarios.js (CRUD da tabela, tela "Usuários" — só Diretor)
+-- Execute no SQL Editor do Supabase se essas tabelas já existirem.
+-- ==========================================================================
+CREATE TABLE IF NOT EXISTS equilibra_user_roles (
+    email       TEXT PRIMARY KEY,
+    role        TEXT NOT NULL CHECK (role IN ('diretor', 'gerente', 'membro')),
+    created_at  TIMESTAMP DEFAULT NOW()
+);
+
+INSERT INTO equilibra_user_roles (email, role) VALUES
+    ('carlosgabriel@ejectufrn.com.br', 'diretor'),
+    ('diretor@ejectufrn.com.br', 'diretor'),
+    ('gerentes@ejectufrn.com.br', 'gerente')
+ON CONFLICT (email) DO NOTHING;
+
+CREATE OR REPLACE FUNCTION equilibra_get_my_role()
+RETURNS TEXT
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT COALESCE(
+    (SELECT role FROM equilibra_user_roles WHERE email = lower(coalesce(auth.jwt() ->> 'email', ''))),
+    'membro'
+  );
+$$;
+
+GRANT EXECUTE ON FUNCTION equilibra_get_my_role() TO authenticated;
+
+-- RLS só nas tabelas do Equilibra — não mexe nas tabelas do app financeiro
+-- que também vive neste projeto Supabase.
+ALTER TABLE equilibra_user_roles      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE members                   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE projects                  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE extra_activities          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE project_tests             ENABLE ROW LEVEL SECURITY;
+ALTER TABLE test_members              ENABLE ROW LEVEL SECURITY;
+ALTER TABLE project_ux_status_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE project_situation_reports ENABLE ROW LEVEL SECURITY;
+
+-- equilibra_user_roles: só diretor mexe (leitura do próprio papel passa
+-- pela função equilibra_get_my_role(), não por SELECT direto na tabela).
+DROP POLICY IF EXISTS eq_roles_all ON equilibra_user_roles;
+CREATE POLICY eq_roles_all ON equilibra_user_roles
+    FOR ALL
+    USING (equilibra_get_my_role() = 'diretor')
+    WITH CHECK (equilibra_get_my_role() = 'diretor');
+
+-- members: todos os logados veem; só diretor cria/edita/apaga.
+DROP POLICY IF EXISTS eq_members_select ON members;
+CREATE POLICY eq_members_select ON members FOR SELECT USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS eq_members_write ON members;
+CREATE POLICY eq_members_write ON members FOR INSERT WITH CHECK (equilibra_get_my_role() = 'diretor');
+DROP POLICY IF EXISTS eq_members_update ON members;
+CREATE POLICY eq_members_update ON members FOR UPDATE USING (equilibra_get_my_role() = 'diretor') WITH CHECK (equilibra_get_my_role() = 'diretor');
+DROP POLICY IF EXISTS eq_members_delete ON members;
+CREATE POLICY eq_members_delete ON members FOR DELETE USING (equilibra_get_my_role() = 'diretor');
+
+-- projects: todos veem; diretor+gerente criam/editam (inclusive scrum_master
+-- — não há trigger de coluna, só a aba de Scrum some da UI pro gerente);
+-- só diretor apaga.
+DROP POLICY IF EXISTS eq_projects_select ON projects;
+CREATE POLICY eq_projects_select ON projects FOR SELECT USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS eq_projects_insert ON projects;
+CREATE POLICY eq_projects_insert ON projects FOR INSERT WITH CHECK (equilibra_get_my_role() IN ('diretor','gerente'));
+DROP POLICY IF EXISTS eq_projects_update ON projects;
+CREATE POLICY eq_projects_update ON projects FOR UPDATE USING (equilibra_get_my_role() IN ('diretor','gerente')) WITH CHECK (equilibra_get_my_role() IN ('diretor','gerente'));
+DROP POLICY IF EXISTS eq_projects_delete ON projects;
+CREATE POLICY eq_projects_delete ON projects FOR DELETE USING (equilibra_get_my_role() = 'diretor');
+
+-- extra_activities: todos veem; diretor+gerente fazem tudo, inclusive apagar.
+DROP POLICY IF EXISTS eq_activities_select ON extra_activities;
+CREATE POLICY eq_activities_select ON extra_activities FOR SELECT USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS eq_activities_insert ON extra_activities;
+CREATE POLICY eq_activities_insert ON extra_activities FOR INSERT WITH CHECK (equilibra_get_my_role() IN ('diretor','gerente'));
+DROP POLICY IF EXISTS eq_activities_update ON extra_activities;
+CREATE POLICY eq_activities_update ON extra_activities FOR UPDATE USING (equilibra_get_my_role() IN ('diretor','gerente')) WITH CHECK (equilibra_get_my_role() IN ('diretor','gerente'));
+DROP POLICY IF EXISTS eq_activities_delete ON extra_activities;
+CREATE POLICY eq_activities_delete ON extra_activities FOR DELETE USING (equilibra_get_my_role() IN ('diretor','gerente'));
+
+-- project_tests: todos veem; diretor+gerente criam/editam; só diretor apaga.
+DROP POLICY IF EXISTS eq_tests_select ON project_tests;
+CREATE POLICY eq_tests_select ON project_tests FOR SELECT USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS eq_tests_insert ON project_tests;
+CREATE POLICY eq_tests_insert ON project_tests FOR INSERT WITH CHECK (equilibra_get_my_role() IN ('diretor','gerente'));
+DROP POLICY IF EXISTS eq_tests_update ON project_tests;
+CREATE POLICY eq_tests_update ON project_tests FOR UPDATE USING (equilibra_get_my_role() IN ('diretor','gerente')) WITH CHECK (equilibra_get_my_role() IN ('diretor','gerente'));
+DROP POLICY IF EXISTS eq_tests_delete ON project_tests;
+CREATE POLICY eq_tests_delete ON project_tests FOR DELETE USING (equilibra_get_my_role() = 'diretor');
+
+-- test_members: segue project_tests — precisa criar/apagar vínculo ao editar
+-- a equipe do teste, mesmo sem apagar o teste em si.
+DROP POLICY IF EXISTS eq_test_members_select ON test_members;
+CREATE POLICY eq_test_members_select ON test_members FOR SELECT USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS eq_test_members_insert ON test_members;
+CREATE POLICY eq_test_members_insert ON test_members FOR INSERT WITH CHECK (equilibra_get_my_role() IN ('diretor','gerente'));
+DROP POLICY IF EXISTS eq_test_members_delete ON test_members;
+CREATE POLICY eq_test_members_delete ON test_members FOR DELETE USING (equilibra_get_my_role() IN ('diretor','gerente'));
+
+-- project_ux_status_history: todos veem; diretor+gerente registram (log,
+-- sem update/delete no app).
+DROP POLICY IF EXISTS eq_ux_history_select ON project_ux_status_history;
+CREATE POLICY eq_ux_history_select ON project_ux_status_history FOR SELECT USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS eq_ux_history_insert ON project_ux_status_history;
+CREATE POLICY eq_ux_history_insert ON project_ux_status_history FOR INSERT WITH CHECK (equilibra_get_my_role() IN ('diretor','gerente'));
+
+-- project_situation_reports: todos veem; diretor+gerente criam/editam; só
+-- diretor apaga (mesma regra de "tudo menos apagar" usada em projects).
+DROP POLICY IF EXISTS eq_situation_select ON project_situation_reports;
+CREATE POLICY eq_situation_select ON project_situation_reports FOR SELECT USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS eq_situation_insert ON project_situation_reports;
+CREATE POLICY eq_situation_insert ON project_situation_reports FOR INSERT WITH CHECK (equilibra_get_my_role() IN ('diretor','gerente'));
+DROP POLICY IF EXISTS eq_situation_update ON project_situation_reports;
+CREATE POLICY eq_situation_update ON project_situation_reports FOR UPDATE USING (equilibra_get_my_role() IN ('diretor','gerente')) WITH CHECK (equilibra_get_my_role() IN ('diretor','gerente'));
+DROP POLICY IF EXISTS eq_situation_delete ON project_situation_reports;
+CREATE POLICY eq_situation_delete ON project_situation_reports FOR DELETE USING (equilibra_get_my_role() = 'diretor');
