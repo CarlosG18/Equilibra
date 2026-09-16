@@ -34,6 +34,10 @@
 
     navItems.forEach(item => {
         item.addEventListener('click', () => {
+            // O toggle da sub-estrutura "Projetos" só abre/fecha o submenu,
+            // não navega para uma aba — não deve fechar o drawer no mobile.
+            if (item.classList.contains('nav-parent-toggle')) return;
+
             const label = item.getAttribute('data-title') || item.textContent.trim();
             setTitle(label);
             closeSidebar(); // fecha o drawer ao navegar no mobile
