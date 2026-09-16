@@ -251,6 +251,16 @@ ALTER TABLE project_situation_reports DISABLE ROW LEVEL SECURITY;
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS member_statuses JSONB DEFAULT '{}'::jsonb;
 
 -- ==========================================
+-- MIGRAÇÃO: Product Owner do projeto
+-- PO é um vínculo por projeto (igual scrum_master), não um cargo do membro
+-- — qualquer membro pode ser PO de um projeto. Gera pontuação de sobrecarga
+-- de coordenação (mesma fórmula do Scrum Master) — ver js/overload.js.
+-- Execute no SQL Editor do Supabase se a tabela projects já existir.
+-- ==========================================
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS po_id UUID REFERENCES members(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_projects_po_id ON projects(po_id);
+
+-- ==========================================
 -- ROW LEVEL SECURITY (opcional — ative se quiser
 -- que cada usuário veja apenas seus próprios dados)
 -- ==========================================

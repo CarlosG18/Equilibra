@@ -100,6 +100,17 @@ function overloadLinesFor(memberId, opts = {}) {
                 type: 'sm',
             });
         }
+
+        // PO é vínculo por projeto (como o SM), não cargo fixo do membro —
+        // mesma fórmula de pontos de coordenação.
+        if (proj.po_id === memberId) {
+            lines.push({
+                label: `PO: ${proj.name}`,
+                pts: coordinationPoints(pts),
+                icon: 'fa-bullseye',
+                type: 'po',
+            });
+        }
     });
 
     // 2. UX/UI — sobrecarga temporária, só enquanto o ciclo está "em andamento"

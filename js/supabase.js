@@ -119,7 +119,7 @@ const ProjectService = {
     // --- 3. CRUD DE PROJETOS (Com Correção de Scrum Master) ---
     // ==========================================
 
-    async adicionarProjeto(name, description, overloadPoints, scrumMasterId, allocatedMembersIds, deadline, type, managerId, memberStatuses) {
+    async adicionarProjeto(name, description, overloadPoints, scrumMasterId, allocatedMembersIds, deadline, type, managerId, memberStatuses, poId) {
         if (!type) return { success: false, error: 'Tipo do projeto é obrigatório.' };
 
         const { data, error } = await _supabase
@@ -133,7 +133,8 @@ const ProjectService = {
                 deadline: deadline || null,
                 type,
                 manager_id: managerId || null,
-                member_statuses: memberStatuses || {}
+                member_statuses: memberStatuses || {},
+                po_id: poId || null
             }])
             .select();
 
@@ -141,7 +142,7 @@ const ProjectService = {
         return { success: true, data: data[0] };
     },
 
-    async atualizarProjeto(id, name, description, overloadPoints, scrumMasterId, allocatedMembersIds, deadline, type, managerId, memberStatuses) {
+    async atualizarProjeto(id, name, description, overloadPoints, scrumMasterId, allocatedMembersIds, deadline, type, managerId, memberStatuses, poId) {
         if (!type) return { success: false, error: 'Tipo do projeto é obrigatório.' };
 
         const updateData = {
@@ -153,6 +154,7 @@ const ProjectService = {
             deadline: deadline || null,
             type,
             manager_id: managerId || null,
+            po_id: poId || null
         };
         // Só sobrescreve member_statuses se veio um valor de verdade — um
         // update que não passe esse argumento (ex.: uma chamada futura fora

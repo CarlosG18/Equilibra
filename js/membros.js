@@ -86,6 +86,7 @@ function buildOverloadTooltipHtml(memberId) {
     const typeColors = {
         project:      '#043c73',
         sm:           '#0787cb',
+        po:           '#0a374e',
         ux_ui:        '#c026d3',
         activity:     '#fc9c14',
         test:         '#5bb0e0',
