@@ -2074,6 +2074,83 @@ input[type="range"].form-control::-moz-range-thumb {
     flex-shrink: 0;
 }
 
+/* Linha de um membro (checkbox + status condicional) dentro da grade de
+   alocação inteligente. Ela é o item do grid — o rótulo do checkbox e o
+   bloco de status ficam empilhados dentro dela. */
+.smart-member-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: var(--t);
+}
+
+/* Quando o membro está em impedimento, a linha toma o grid inteiro: o campo
+   de texto do impedimento precisa de espaço e fica espremido numa coluna de
+   220px. */
+.smart-member-row.status-open {
+    grid-column: 1 / -1;
+}
+
+.smart-member-row .smart-allocation-label {
+    height: 100%;
+}
+
+.member-status-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 12px;
+    margin-left: 4px;
+    border-left: 2px solid var(--line-strong);
+    animation: memberStatusIn 0.15s ease;
+}
+
+@keyframes memberStatusIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.member-status-field,
+.member-impediment-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 180px;
+}
+
+.member-impediment-field {
+    flex: 1;
+}
+
+.member-status-mini-label {
+    font-size: 0.74em;
+    font-weight: 600;
+    color: var(--text-2);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.member-status-mini-label i {
+    color: var(--danger);
+}
+
+.member-status-select,
+.member-impediment-input {
+    font-size: 0.85em;
+    padding: 7px 10px;
+}
+
+.member-impediment-input {
+    resize: vertical;
+    min-height: 40px;
+}
+
+.member-status-select:has(option[value="em_impedimento"]:checked) {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
 /* ===================== Cards de membro / projeto (fallback) ===================== */
 .member-list,
 .project-list {
@@ -2289,20 +2366,20 @@ tr.member-card:hover {
     color: var(--text-3);
 }
 
-/* Tooltip de membros alocados */
-.proj-meta-members[data-tooltip] {
+/* Tooltip de membros alocados (e de outros badges de projeto com detalhe) */
+.proj-meta-item[data-tooltip] {
     position: relative;
     cursor: default;
 }
 
-.proj-meta-members[data-tooltip]::before,
-.proj-meta-members[data-tooltip]::after {
+.proj-meta-item[data-tooltip]::before,
+.proj-meta-item[data-tooltip]::after {
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.15s ease;
 }
 
-.proj-meta-members[data-tooltip]::after {
+.proj-meta-item[data-tooltip]::after {
     content: attr(data-tooltip);
     position: absolute;
     bottom: calc(100% + 8px);
@@ -2322,7 +2399,7 @@ tr.member-card:hover {
     z-index: 200;
 }
 
-.proj-meta-members[data-tooltip]::before {
+.proj-meta-item[data-tooltip]::before {
     content: '';
     position: absolute;
     bottom: calc(100% + 4px);
@@ -2333,9 +2410,14 @@ tr.member-card:hover {
     z-index: 201;
 }
 
-.proj-meta-members[data-tooltip]:hover::before,
-.proj-meta-members[data-tooltip]:hover::after {
+.proj-meta-item[data-tooltip]:hover::before,
+.proj-meta-item[data-tooltip]:hover::after {
     opacity: 1;
+}
+
+.proj-meta-impediment {
+    color: var(--danger);
+    font-weight: 600;
 }
 
 .proj-card-footer {

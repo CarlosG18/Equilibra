@@ -1,6 +1,16 @@
 // ALOCAÇÃO INTELIGENTE
 
-function renderSmartAllocationCheckboxes(selectedIds = []) {
+// Escapa texto livre do usuário antes de inseri-lo dentro de um <textarea>:
+// sem isso, um impedimento contendo "</textarea>" fecharia a tag e quebraria
+// o restante do formulário.
+function _escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+function renderSmartAllocationCheckboxes(selectedIds = [], memberStatuses = {}) {
     const container = document.getElementById('membersAllocation');
     if (!container) return;
 
@@ -42,14 +52,23 @@ function renderSmartAllocationCheckboxes(selectedIds = []) {
         group.forEach((member, index) => {
             const overload = member.overload || 0;
             const overloadClass = getOverloadClassForMember(overload);
-            const isChecked = selectedIds.includes(member.id) ? 'checked' : '';
+            const isChecked = selectedIds.includes(member.id);
             const rankIcon = index < 3 ? `<span class="smart-rank-icon">${rankIcons[index]}</span>` : '';
+
+            const savedStatus = memberStatuses[member.id] || {};
+            const statusKey = savedStatus.status === 'em_impedimento' ? 'em_impedimento' : 'em_desenvolvimento';
+            const impedimentoText = savedStatus.impedimento || '';
+            const isBlocked = isChecked && statusKey === 'em_impedimento';
+
+            const row = document.createElement('div');
+            row.className = 'smart-member-row' + (isBlocked ? ' status-open' : '');
+            row.dataset.memberRow = member.id;
 
             const label = document.createElement('label');
             label.className = 'checkbox-label smart-allocation-label';
             label.setAttribute('data-overload', overload);
             label.innerHTML = `
-                <input type="checkbox" name="projectMembers" value="${member.id}" ${isChecked}>
+                <input type="checkbox" name="projectMembers" value="${member.id}" data-member-id="${member.id}" ${isChecked ? 'checked' : ''}>
                 <div class="smart-member-info">
                     <div class="smart-member-name">
                         ${rankIcon}
@@ -59,12 +78,86 @@ function renderSmartAllocationCheckboxes(selectedIds = []) {
                     <span class="overload-indicator ${overloadClass} smart-overload-badge">${overload} pts</span>
                 </div>
             `;
-            container.appendChild(label);
+            row.appendChild(label);
+
+            const statusRow = document.createElement('div');
+            statusRow.className = 'member-status-row';
+            statusRow.id = `memberStatusRow-${member.id}`;
+            statusRow.style.display = isChecked ? '' : 'none';
+            statusRow.innerHTML = `
+                <div class="member-status-field">
+                    <label class="member-status-mini-label" for="memberStatusSelect-${member.id}">Status no projeto</label>
+                    <select id="memberStatusSelect-${member.id}" class="form-control member-status-select" data-member-id="${member.id}">
+                        <option value="em_desenvolvimento" ${statusKey === 'em_desenvolvimento' ? 'selected' : ''}>Em desenvolvimento</option>
+                        <option value="em_impedimento" ${statusKey === 'em_impedimento' ? 'selected' : ''}>Em impedimento</option>
+                    </select>
+                </div>
+                <div class="member-impediment-field" style="display:${statusKey === 'em_impedimento' ? '' : 'none'}">
+                    <label class="member-status-mini-label" for="memberImpediment-${member.id}"><i class="fas fa-triangle-exclamation"></i> Qual é o impedimento?</label>
+                    <textarea id="memberImpediment-${member.id}" class="form-control member-impediment-input" data-member-id="${member.id}" rows="2" placeholder="Ex: aguardando definição do cliente">${_escapeHtml(impedimentoText)}</textarea>
+                </div>
+            `;
+            row.appendChild(statusRow);
+
+            container.appendChild(row);
         });
     });
 
     _updateTeamCompositionPreview();
     _updateUxUiSection();
+}
+
+// STATUS DO MEMBRO NO PROJETO (em desenvolvimento / em impedimento)
+
+// Mostra/esconde os controles de status de um membro quando ele é
+// marcado/desmarcado na alocação inteligente.
+function _toggleMemberStatusRow(memberId, show) {
+    const row = document.getElementById(`memberStatusRow-${memberId}`);
+    if (!row) return;
+    row.style.display = show ? '' : 'none';
+    _syncMemberRowSpan(memberId);
+}
+
+// Quando o status vira "Em impedimento", expande a linha do membro para a
+// largura toda do grid — o campo de texto do impedimento precisa de espaço
+// e não cabe bem espremido numa coluna de 220px.
+function _syncMemberRowSpan(memberId) {
+    const row = document.getElementById(`memberStatusRow-${memberId}`);
+    const wrapper = row ? row.closest('.smart-member-row') : null;
+    if (!row || !wrapper) return;
+
+    const select = row.querySelector('.member-status-select');
+    const visible = row.style.display !== 'none';
+    const isBlocked = visible && select && select.value === 'em_impedimento';
+
+    wrapper.classList.toggle('status-open', isBlocked);
+    const impedField = row.querySelector('.member-impediment-field');
+    if (impedField) impedField.style.display = isBlocked ? '' : 'none';
+}
+
+// Lê do DOM o status atual de cada membro selecionado, pronto para salvar.
+function _collectMemberStatuses(selectedMembers) {
+    const statuses = {};
+    selectedMembers.forEach(id => {
+        const select = document.querySelector(`.member-status-select[data-member-id="${id}"]`);
+        const impedInput = document.querySelector(`.member-impediment-input[data-member-id="${id}"]`);
+        const status = select ? select.value : 'em_desenvolvimento';
+        const impedimento = status === 'em_impedimento' && impedInput ? impedInput.value.trim() : '';
+        statuses[id] = { status, impedimento };
+    });
+    return statuses;
+}
+
+// Garante que todo membro marcado "em impedimento" descreveu o motivo antes
+// de salvar. Retorna o id do primeiro membro com pendência, ou null se ok.
+function _validateMemberStatuses(selectedMembers) {
+    for (const id of selectedMembers) {
+        const select = document.querySelector(`.member-status-select[data-member-id="${id}"]`);
+        if (!select || select.value !== 'em_impedimento') continue;
+        const impedInput = document.querySelector(`.member-impediment-input[data-member-id="${id}"]`);
+        if (!impedInput || !impedInput.value.trim()) return id;
+    }
+    return null;
 }
 
 // COMPOSIÇÃO MÍNIMA DA EQUIPE (badges ao vivo no modal)
@@ -95,6 +188,10 @@ if (membersAllocationContainer) {
         if (e.target && e.target.name === 'projectMembers') {
             _updateTeamCompositionPreview();
             _updateUxUiSection();
+            _toggleMemberStatusRow(e.target.getAttribute('data-member-id'), e.target.checked);
+        }
+        if (e.target && e.target.classList.contains('member-status-select')) {
+            _syncMemberRowSpan(e.target.getAttribute('data-member-id'));
         }
     });
 }
@@ -317,6 +414,16 @@ if (projectForm) {
             selectedMembers.push(cb.value);
         });
 
+        const pendingImpediment = _validateMemberStatuses(selectedMembers);
+        if (pendingImpediment) {
+            const m = members.find(mm => mm.id === pendingImpediment);
+            showFloatingAlert(`Descreva o impedimento de ${m ? m.name : 'membro selecionado'} antes de salvar.`, 'error');
+            const impedInput = document.getElementById(`memberImpediment-${pendingImpediment}`);
+            if (impedInput) impedInput.focus();
+            return;
+        }
+        const memberStatuses = _collectMemberStatuses(selectedMembers);
+
         const submitBtn = this.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
@@ -324,9 +431,9 @@ if (projectForm) {
 
         try {
             if (editingProjectId) {
-                await _salvarEdicaoProjeto(editingProjectId, name, desc, points, selectedMembers, deadline, type, managerId);
+                await _salvarEdicaoProjeto(editingProjectId, name, desc, points, selectedMembers, deadline, type, managerId, memberStatuses);
             } else {
-                await _criarProjeto(name, desc, points, selectedMembers, this, deadline, type, managerId);
+                await _criarProjeto(name, desc, points, selectedMembers, this, deadline, type, managerId, memberStatuses);
             }
         } catch (err) {
             console.error("Erro no processamento:", err);
@@ -340,8 +447,8 @@ if (projectForm) {
     });
 }
 
-async function _criarProjeto(name, desc, points, selectedMembers, form, deadline, type, managerId) {
-    const res = await ProjectService.adicionarProjeto(name, desc, points, null, selectedMembers, deadline, type, managerId);
+async function _criarProjeto(name, desc, points, selectedMembers, form, deadline, type, managerId, memberStatuses) {
+    const res = await ProjectService.adicionarProjeto(name, desc, points, null, selectedMembers, deadline, type, managerId, memberStatuses);
     if (res.success) {
         projects.push(res.data);
         showFloatingAlert('Projeto criado com sucesso!');
@@ -352,11 +459,11 @@ async function _criarProjeto(name, desc, points, selectedMembers, form, deadline
     }
 }
 
-async function _salvarEdicaoProjeto(id, name, desc, points, selectedMembers, deadline, type, managerId) {
+async function _salvarEdicaoProjeto(id, name, desc, points, selectedMembers, deadline, type, managerId, memberStatuses) {
     const originalProject = projects.find(p => p.id === id);
     const currentScrumMasterId = originalProject ? originalProject.scrum_master : null;
 
-    const res = await ProjectService.atualizarProjeto(id, name, desc, points, currentScrumMasterId, selectedMembers, deadline, type, managerId);
+    const res = await ProjectService.atualizarProjeto(id, name, desc, points, currentScrumMasterId, selectedMembers, deadline, type, managerId, memberStatuses);
     if (res.success) {
         const index = projects.findIndex(p => p.id === id);
         if (index !== -1) projects[index] = res.data;
@@ -395,8 +502,14 @@ function renderProjects() {
         const teamIds = proj.allocated_members || [];
         const overloadClass = getOverloadClassForProject(proj.overload_points || 0);
         const fillPct = Math.min(100, (proj.overload_points || 0) * 10);
+        const memberStatuses = proj.member_statuses || {};
 
         const memberNames = teamIds
+            .map(id => { const m = members.find(mem => mem.id === id); return m ? m.name : null; })
+            .filter(Boolean);
+
+        const blockedNames = teamIds
+            .filter(id => memberStatuses[id] && memberStatuses[id].status === 'em_impedimento')
             .map(id => { const m = members.find(mem => mem.id === id); return m ? m.name : null; })
             .filter(Boolean);
 
@@ -425,6 +538,9 @@ function renderProjects() {
                     </span>
                     ${proj.type ? teamCompositionCardBadge(proj.type, teamIds) : ''}
                     ${uxUiStatusCardBadge(proj.ux_ui_status, proj.ux_ui_deadline, proj.ux_ui_points)}
+                    ${blockedNames.length > 0
+                        ? `<span class="proj-meta-item proj-meta-impediment"><i class="fas fa-hand"></i>${blockedNames.length} em impedimento</span>`
+                        : ''}
                 </div>
                 <div class="proj-card-footer">
                     <div class="proj-card-deadline">${formatDeadlineCountdown(proj.deadline)}</div>
@@ -442,6 +558,9 @@ function renderProjects() {
 
         if (memberNames.length > 0) {
             card.querySelector('.proj-meta-members').dataset.tooltip = memberNames.join('\n');
+        }
+        if (blockedNames.length > 0) {
+            card.querySelector('.proj-meta-impediment').dataset.tooltip = blockedNames.join('\n');
         }
 
         container.appendChild(card);
@@ -535,7 +654,7 @@ function editProject(id) {
 
     // 3. Preencher Membros Alocados (Checkboxes) com ranking inteligente
     const allocatedIDs = project.allocated_members || [];
-    renderSmartAllocationCheckboxes(allocatedIDs);
+    renderSmartAllocationCheckboxes(allocatedIDs, project.member_statuses || {});
 
     // 4. Configurar botões do modo edição
     const submitBtn = document.querySelector('#projectForm button[type="submit"]');

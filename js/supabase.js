@@ -119,7 +119,7 @@ const ProjectService = {
     // --- 3. CRUD DE PROJETOS (Com Correção de Scrum Master) ---
     // ==========================================
 
-    async adicionarProjeto(name, description, overloadPoints, scrumMasterId, allocatedMembersIds, deadline, type, managerId) {
+    async adicionarProjeto(name, description, overloadPoints, scrumMasterId, allocatedMembersIds, deadline, type, managerId, memberStatuses) {
         if (!type) return { success: false, error: 'Tipo do projeto é obrigatório.' };
 
         const { data, error } = await _supabase
@@ -132,7 +132,8 @@ const ProjectService = {
                 allocated_members: allocatedMembersIds,
                 deadline: deadline || null,
                 type,
-                manager_id: managerId || null
+                manager_id: managerId || null,
+                member_statuses: memberStatuses || {}
             }])
             .select();
 
@@ -140,7 +141,7 @@ const ProjectService = {
         return { success: true, data: data[0] };
     },
 
-    async atualizarProjeto(id, name, description, overloadPoints, scrumMasterId, allocatedMembersIds, deadline, type, managerId) {
+    async atualizarProjeto(id, name, description, overloadPoints, scrumMasterId, allocatedMembersIds, deadline, type, managerId, memberStatuses) {
         if (!type) return { success: false, error: 'Tipo do projeto é obrigatório.' };
 
         const updateData = {
@@ -151,8 +152,12 @@ const ProjectService = {
             allocated_members: allocatedMembersIds,
             deadline: deadline || null,
             type,
-            manager_id: managerId || null
+            manager_id: managerId || null,
         };
+        // Só sobrescreve member_statuses se veio um valor de verdade — um
+        // update que não passe esse argumento (ex.: uma chamada futura fora
+        // do fluxo do modal) não pode apagar os status já salvos do projeto.
+        if (memberStatuses) updateData.member_statuses = memberStatuses;
 
         const { data, error } = await _supabase
             .from('projects')

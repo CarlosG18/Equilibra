@@ -237,6 +237,20 @@ CREATE INDEX IF NOT EXISTS idx_situation_reports_project_id ON project_situation
 ALTER TABLE project_situation_reports DISABLE ROW LEVEL SECURITY;
 
 -- ==========================================
+-- MIGRAÇÃO: status do membro dentro do projeto
+-- ("Em desenvolvimento" / "Em impedimento" + motivo do impedimento).
+-- Quando um membro está em impedimento, ele não recebe os pontos de
+-- sobrecarga do projeto enquanto durar o bloqueio — ver js/overload.js.
+-- Execute no SQL Editor do Supabase se a tabela projects já existir.
+--
+-- Formato: { "<member_id>": { "status": "em_desenvolvimento" | "em_impedimento",
+--                              "impedimento": "texto livre" } }
+-- Membro sem entrada aqui é tratado como "em_desenvolvimento" (comportamento
+-- anterior à esta migração).
+-- ==========================================
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS member_statuses JSONB DEFAULT '{}'::jsonb;
+
+-- ==========================================
 -- ROW LEVEL SECURITY (opcional — ative se quiser
 -- que cada usuário veja apenas seus próprios dados)
 -- ==========================================
