@@ -78,7 +78,17 @@ function overloadLinesFor(memberId, opts = {}) {
         // O UX/UI não é cobrado pelo projeto inteiro como o Front/Back — ele
         // entra e sai do projeto num ciclo próprio, cobrado no passo 2.
         if ((proj.allocated_members || []).includes(memberId) && member.subarea !== 'ux_ui') {
-            lines.push({ label: proj.name, pts, icon: 'fa-project-diagram', type: 'project' });
+            // Membro em impedimento não recebe os pontos do projeto enquanto
+            // durar o bloqueio — a linha continua aparecendo (0 pts) para não
+            // esconder a alocação, só não pesa na sobrecarga.
+            const memberStatus = (proj.member_statuses || {})[memberId];
+            const isBlocked = memberStatus && memberStatus.status === 'em_impedimento';
+            lines.push({
+                label: isBlocked ? `${proj.name} (impedimento)` : proj.name,
+                pts: isBlocked ? 0 : pts,
+                icon: isBlocked ? 'fa-hand' : 'fa-project-diagram',
+                type: isBlocked ? 'impediment' : 'project',
+            });
         }
 
         const smId = proj.scrum_master_id || proj.scrum_master;
@@ -100,6 +110,12 @@ function overloadLinesFor(memberId, opts = {}) {
         if (proj.ux_ui_member_id !== memberId) return;
         if (!proj.ux_ui_deadline || !proj.ux_ui_points) return;
         if (!_deadlineActiveAt(proj.ux_ui_deadline, refDate)) return;
+
+        // Mesma regra de impedimento do passo 1: se o UX/UI também está
+        // marcado como "em impedimento" na alocação do projeto, não cobra
+        // os pontos do ciclo enquanto durar o bloqueio.
+        const memberStatus = (proj.member_statuses || {})[memberId];
+        if (memberStatus && memberStatus.status === 'em_impedimento') return;
 
         lines.push({
             label: `UX/UI: ${proj.name}`,

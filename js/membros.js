@@ -92,6 +92,7 @@ function buildOverloadTooltipHtml(memberId) {
         test_manager: '#0787cb',
         cargo:        '#7c3aed',
         personal:     '#10b981',
+        impediment:   '#e23d28',
     };
 
     const rows = lines.map(l => `
