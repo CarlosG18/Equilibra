@@ -2815,6 +2815,31 @@ tr.member-card:hover {
     font-size: 0.9em;
 }
 
+/* ==========================================================================
+   ATIVIDADES EXTRAS — filtro por status
+   ========================================================================== */
+.activity-status-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 180px;
+}
+.activity-status-filter label {
+    font-size: 0.78em;
+    font-weight: 600;
+    color: var(--text-2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.activity-status-filter label i {
+    color: var(--purple);
+}
+.activity-status-filter select {
+    padding: 8px 10px;
+    font-size: 0.9em;
+}
+
 .analysis-summary-note {
     background: linear-gradient(135deg, #e9f4fc 0%, #f4f9fd 100%);
     border: 1px solid #cfe6f6;
