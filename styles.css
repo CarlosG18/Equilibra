@@ -2070,6 +2070,67 @@ input[type="range"].form-control::-moz-range-thumb {
     border: 1px solid transparent;
 }
 
+/* Fila de "aguardando liberação" no topo da aba Usuários */
+.usuarios-pending-card {
+    border-color: var(--orange);
+    background: var(--orange-bg);
+    margin-bottom: 18px;
+}
+
+.usuarios-pending-card .section-title {
+    color: var(--orange-ink);
+    margin-bottom: 12px;
+}
+
+.usuario-pending-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.usuario-pending-row:first-child {
+    border-top: none;
+}
+
+.usuario-pending-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.usuario-pending-info small {
+    color: var(--text-3);
+    font-size: 0.76rem;
+}
+
+.usuario-pending-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.usuario-pending-role {
+    padding: 7px 10px;
+    font-size: 0.85em;
+    width: auto;
+}
+
+@media (max-width: 560px) {
+    .usuario-pending-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .usuario-pending-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
 /* ===================== Alocação inteligente ===================== */
 .smart-allocation-header {
     grid-column: 1 / -1;

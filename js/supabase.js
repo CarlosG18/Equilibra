@@ -420,6 +420,15 @@ const ProjectService = {
         return { success: true, data };
     },
 
+    // Quem já criou conta (tela de login → "Criar uma") mas ainda não tem
+    // papel definido — a fila de aprovação. Só devolve linhas pro Diretor
+    // (a checagem está dentro da função no banco, não só aqui).
+    async listarUsuariosPendentes() {
+        const { data, error } = await _supabase.rpc('equilibra_list_pending_users');
+        if (error) return { success: false, error: error.message };
+        return { success: true, data };
+    },
+
     async adicionarUsuario(email, role) {
         const { data, error } = await _supabase
             .from('equilibra_user_roles')

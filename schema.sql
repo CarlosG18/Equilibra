@@ -442,3 +442,30 @@ CREATE POLICY eq_ux_history_select ON project_ux_status_history FOR SELECT USING
 
 DROP POLICY IF EXISTS eq_situation_select ON project_situation_reports;
 CREATE POLICY eq_situation_select ON project_situation_reports FOR SELECT USING (equilibra_is_registered());
+
+-- ==========================================================================
+-- MIGRAÇÃO: fila de aprovação (quem criou conta mas ainda não foi liberado)
+-- Sem isso, a única forma do Diretor saber que alguém se cadastrou era a
+-- própria pessoa avisar o e-mail por fora do sistema. Lista quem existe em
+-- auth.users mas não tem linha em equilibra_user_roles — exibida na aba
+-- "Usuários" (js/usuarios.js). A checagem de papel fica DENTRO da query
+-- (não só no frontend): quem não é diretor recebe 0 linhas, mesmo chamando
+-- a função direto.
+-- Execute no SQL Editor do Supabase se a tabela já existir.
+-- ==========================================================================
+CREATE OR REPLACE FUNCTION equilibra_list_pending_users()
+RETURNS TABLE(email TEXT, created_at TIMESTAMPTZ)
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT u.email::text, u.created_at
+  FROM auth.users u
+  LEFT JOIN equilibra_user_roles r ON r.email = lower(u.email)
+  WHERE r.email IS NULL
+    AND equilibra_get_my_role() = 'diretor'
+  ORDER BY u.created_at DESC;
+$$;
+
+GRANT EXECUTE ON FUNCTION equilibra_list_pending_users() TO authenticated;

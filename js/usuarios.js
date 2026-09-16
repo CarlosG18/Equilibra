@@ -16,6 +16,65 @@ const ROLE_META = {
 async function loadUsuarios() {
     const res = await ProjectService.listarUsuarios();
     renderUsuarios(res.success ? res.data : []);
+
+    const pendRes = await ProjectService.listarUsuariosPendentes();
+    renderUsuariosPendentes(pendRes.success ? pendRes.data : []);
+}
+
+// Fila de quem já criou conta pela tela de login mas ainda não foi
+// liberado — ver equilibra_list_pending_users() em schema.sql. Cada linha
+// tem um select de papel + botão "Aprovar" direto, sem precisar abrir o
+// modal (a maioria vai entrar como Membro mesmo, o padrão do select).
+function renderUsuariosPendentes(pendentes) {
+    const card = document.getElementById('usuariosPendentesCard');
+    const list = document.getElementById('usuariosPendentesList');
+    if (!card || !list) return;
+
+    if (!pendentes || pendentes.length === 0) {
+        card.hidden = true;
+        list.innerHTML = '';
+        return;
+    }
+
+    card.hidden = false;
+    list.innerHTML = pendentes.map(p => `
+        <div class="usuario-pending-row">
+            <div class="usuario-pending-info">
+                <strong>${p.email}</strong>
+                <small>Criou conta em ${new Date(p.created_at).toLocaleDateString('pt-BR')}</small>
+            </div>
+            <div class="usuario-pending-actions">
+                <select class="form-control usuario-pending-role" id="pendingRole-${_cssEscape(p.email)}">
+                    <option value="membro" selected>Membro</option>
+                    <option value="gerente">Gerente</option>
+                    <option value="diretor">Diretor</option>
+                </select>
+                <button class="btn btn-success btn-extra-small" onclick="aprovarUsuarioPendente('${p.email}')">
+                    <i class="fas fa-check"></i> Aprovar
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// data-id em CSS não aceita @ e . soltos num seletor — id do <select> usa
+// esse escape só pra achar o elemento de novo no DOM, não é enviado a lugar
+// nenhum.
+function _cssEscape(str) {
+    return str.replace(/[^a-zA-Z0-9]/g, '_');
+}
+
+async function aprovarUsuarioPendente(email) {
+    const select = document.getElementById(`pendingRole-${_cssEscape(email)}`);
+    const role = select ? select.value : 'membro';
+
+    const res = await ProjectService.adicionarUsuario(email, role);
+    if (res.success) {
+        showFloatingAlert(`${email} liberado como ${ROLE_META[role].label}.`);
+        loadUsuarios();
+    } else {
+        showFloatingAlert('Erro ao liberar acesso: ' + res.error, 'error');
+    }
 }
 
 function renderUsuarios(usuarios) {
