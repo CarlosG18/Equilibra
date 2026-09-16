@@ -60,6 +60,23 @@ async function loadCurrentUserRole() {
     return currentUserRole;
 }
 
+// Diz se quem está logado tem uma linha em equilibra_user_roles — ou seja,
+// se um Diretor já liberou esse e-mail. Diferente de loadCurrentUserRole(),
+// que sempre devolve algo (cai pro papel mais restrito): aqui a pergunta é
+// "esse e-mail está cadastrado?", não "qual o papel dele?". Usada logo após
+// o login pra decidir entre mostrar o app ou a tela de "aguardando
+// liberação" — ver js/auth.js. Em caso de dúvida (erro de rede etc.), trata
+// como não registrado: mais seguro barrar por engano do que deixar passar.
+async function isCurrentUserRegistered() {
+    try {
+        const { data, error } = await _supabase.rpc('equilibra_is_registered');
+        return !error && data === true;
+    } catch (e) {
+        console.error('Erro ao verificar cadastro do usuário:', e);
+        return false;
+    }
+}
+
 function can(section, action = 'view') {
     const sectionPerms = (PERMISSIONS[currentUserRole] || PERMISSIONS.membro)[section];
     return !!(sectionPerms && sectionPerms[action]);

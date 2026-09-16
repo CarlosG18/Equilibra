@@ -251,6 +251,41 @@ body {
     display: none;
 }
 
+.login-notice {
+    color: var(--brand-strong);
+    background: var(--brand-50);
+    border: 1px solid var(--brand-100);
+    border-radius: var(--radius-sm);
+    font-size: 0.82rem;
+    line-height: 1.5;
+    padding: 10px 14px;
+    margin-top: 14px;
+    text-align: left;
+}
+
+/* Alterna entre "Entrar" e "Criar conta" na mesma tela de login. */
+.login-mode-toggle {
+    width: 100%;
+    margin-top: 18px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-2);
+    font-size: 0.84rem;
+    cursor: pointer;
+}
+
+.login-mode-toggle span {
+    color: var(--blue-strong);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.login-mode-toggle:hover span {
+    color: var(--brand);
+}
+
 .login-foot {
     display: flex;
     align-items: center;

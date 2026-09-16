@@ -395,3 +395,50 @@ DROP POLICY IF EXISTS eq_situation_update ON project_situation_reports;
 CREATE POLICY eq_situation_update ON project_situation_reports FOR UPDATE USING (equilibra_get_my_role() IN ('diretor','gerente')) WITH CHECK (equilibra_get_my_role() IN ('diretor','gerente'));
 DROP POLICY IF EXISTS eq_situation_delete ON project_situation_reports;
 CREATE POLICY eq_situation_delete ON project_situation_reports FOR DELETE USING (equilibra_get_my_role() = 'diretor');
+
+-- ==========================================================================
+-- MIGRAÇÃO: exigir cadastro pra ler qualquer dado (não só estar logado)
+-- A tela de criação de conta (index.html — #signupForm) deixou o cadastro
+-- aberto pra qualquer e-mail. Sem esta migração, qualquer pessoa que se
+-- cadastrasse já enxergaria tudo em modo leitura como "membro" (fallback de
+-- equilibra_get_my_role()). Agora SELECT em qualquer tabela do Equilibra
+-- exige uma linha em equilibra_user_roles — quem acabou de criar conta cai
+-- na tela de "aguardando liberação" (js/auth.js, routeAfterSession) até um
+-- Diretor cadastrá-lo na aba "Usuários".
+-- Execute no SQL Editor do Supabase se essas tabelas já existirem.
+-- ==========================================================================
+CREATE OR REPLACE FUNCTION equilibra_is_registered()
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM equilibra_user_roles
+    WHERE email = lower(coalesce(auth.jwt() ->> 'email', ''))
+  );
+$$;
+
+GRANT EXECUTE ON FUNCTION equilibra_is_registered() TO authenticated;
+
+DROP POLICY IF EXISTS eq_members_select ON members;
+CREATE POLICY eq_members_select ON members FOR SELECT USING (equilibra_is_registered());
+
+DROP POLICY IF EXISTS eq_projects_select ON projects;
+CREATE POLICY eq_projects_select ON projects FOR SELECT USING (equilibra_is_registered());
+
+DROP POLICY IF EXISTS eq_activities_select ON extra_activities;
+CREATE POLICY eq_activities_select ON extra_activities FOR SELECT USING (equilibra_is_registered());
+
+DROP POLICY IF EXISTS eq_tests_select ON project_tests;
+CREATE POLICY eq_tests_select ON project_tests FOR SELECT USING (equilibra_is_registered());
+
+DROP POLICY IF EXISTS eq_test_members_select ON test_members;
+CREATE POLICY eq_test_members_select ON test_members FOR SELECT USING (equilibra_is_registered());
+
+DROP POLICY IF EXISTS eq_ux_history_select ON project_ux_status_history;
+CREATE POLICY eq_ux_history_select ON project_ux_status_history FOR SELECT USING (equilibra_is_registered());
+
+DROP POLICY IF EXISTS eq_situation_select ON project_situation_reports;
+CREATE POLICY eq_situation_select ON project_situation_reports FOR SELECT USING (equilibra_is_registered());
